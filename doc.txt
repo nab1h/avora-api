@@ -1,4 +1,31 @@
-{
-    "email": "beboalashmawy@gmail.com",
-    "password": "NewPassword123"
-}
+المكتبات:
+fortify لتسجيل الدخول والمستخدمين
+sunctum للتحقق من المستخدم
+spatie للصلاحيات 
+
+
+
+======================================
+GET /api/users
+لعرض جميع المستخدمين
+GET /api/users?page=1
+لعرض صفحة واحده وهي عباره عن 10
+GET /api/users?search=ahmed
+لعرض اي اسم او ايميل باسم ahmed
+GET /api/users?page=2&per_page=10&search=ahmed
+هيجيب أول 10 Users اللي الاسم أو الإيميل بتاعهم يحتوي على ahmed
+GET /api/users?permission=create-products
+المستخدمين اللي عندهم Permission اسمها create-products
+GET /api/users?search=ahmed&role=admin
+وتقدر تجمعهم
+GET /api/users?sort=name
+ترتيب بالاسم تصاعدي
+GET /api/users?sort=-name
+من الأكبر للأصغر / Z → A
+GET /api/users?sort=-created_at
+الأحدث أولًا
+GET /api/users?sort=created_at
+الأقدم أولًا
+GET /api/users?search=ahmed&role=admin&sort=-created_at&page=1&per_page=5
+وتقدر تجمع كل حاجة
+=================================================
