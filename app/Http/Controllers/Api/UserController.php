@@ -5,11 +5,16 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Http\Requests\UpdateUserStatusRequest;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
+// ===========================
+// index
+// =========================== 
     public function index(Request $request)
     {
 
@@ -58,45 +63,41 @@ class UserController extends Controller
             ->orderBy($sort, $direction)
             ->paginate($perPage);
 
-        return response()->json([
-            'users' => $users,
-        ]);
+        return UserResource::collection($users);
     }
-
+// ===========================
+// store
+// =========================== 
     public function store(StoreUserRequest $request)
     {
         $user = User::create($request->validated());
 
-        return response()->json([
-            'message' => 'User created successfully.',
-            'user' => $user,
-        ], 201);
+        return new UserResource($user);
     }
-
+// ===========================
+// show
+// =========================== 
     public function show(User $user)
     {
         $user->load(['roles', 'permissions']);
 
-        return response()->json([
-            'user' => $user,
-        ]);
+        return new UserResource($user);
     }
-
+// ===========================
+// update
+// =========================== 
     public function update(UpdateUserRequest $request, User $user)
     {
         $user->update($request->validated());
 
-        return response()->json([
-            'message' => 'User updated successfully.',
-            'user' => $user->fresh(),
-        ]);
+        return new UserResource($user->fresh());
     }
-
-    public function updateStatus(Request $request, User $user)
+// ===========================
+// updateStatus
+// =========================== 
+    public function updateStatus(UpdateUserStatusRequest $request, User $user)
     {
-        $validated = $request->validate([
-            'is_active' => ['required', 'boolean'],
-        ]);
+        $validated = $request->validated();
 
         $user->update([
             'is_active' => $validated['is_active'],
@@ -110,7 +111,9 @@ class UserController extends Controller
             'user' => $user->fresh(),
         ]);
     }
-
+// ===========================
+// destroy
+// =========================== 
     public function destroy(User $user)
     {
         $user->delete();

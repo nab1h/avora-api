@@ -85,7 +85,7 @@ Route::middleware(['auth:sanctum', 'permission:manage-permissions'])->group(func
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('users', [UserController::class, 'index'])->middleware('permission:view-users');
 
-Route::post('users', [UserController::class, 'store'])->middleware('permission:create-users');
+Route::post('users', [UserController::class, 'store'])->middleware('permission:view-users');
     
 
     Route::get('users/{user}', [UserController::class, 'show'])->middleware('permission:view-users');

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\AssignRolePermissionsRequest;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -16,16 +17,11 @@ class RolePermissionController extends Controller
         ]);
     }
 
-    public function store(Request $request, Role $role)
+    public function store(AssignRolePermissionsRequest $request, Role $role)
     {
-        $request->validate([
-            'permissions' => ['required', 'array'],
-            'permissions.*' => ['required', 'exists:permissions,id'],
-        ]);
-
         $permissions = Permission::whereIn(
             'id',
-            $request->permissions
+            $request->validated()['permissions']
         )->get();
 
         $role->syncPermissions($permissions);

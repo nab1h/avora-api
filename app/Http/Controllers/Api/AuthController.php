@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ChangePasswordRequest;
+use App\Http\Requests\ForgotPasswordRequest;
+use App\Http\Requests\ResetPasswordRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -86,14 +89,10 @@ class AuthController extends Controller
     // forgotPassword method to revoke the user's current access token
     // ===========================================================================
 
-    public function forgotPassword(Request $request)
+    public function forgotPassword(ForgotPasswordRequest $request)
     {
-        $request->validate([
-            'email' => ['required', 'email'],
-        ]);
-
         $status = Password::sendResetLink(
-            $request->only('email')
+            $request->validated()
         );
 
         if ($status !== Password::RESET_LINK_SENT) {
@@ -110,14 +109,8 @@ class AuthController extends Controller
     // ==========================================================================
     // resetPassword method to revoke the user's current access token
     // ===========================================================================
-    public function resetPassword(Request $request)
+    public function resetPassword(ResetPasswordRequest $request)
     {
-        $request->validate([
-            'token' => ['required'],
-            'email' => ['required', 'email'],
-            'password' => ['required', 'min:8', 'confirmed'],
-        ]);
-
         $status = Password::reset(
             $request->only(
                 'email',
@@ -149,13 +142,8 @@ class AuthController extends Controller
     // changePassword method to revoke the user's current access token
     // =========================================================================
 
-    public function changePassword(Request $request)
+    public function changePassword(ChangePasswordRequest $request)
     {
-        $request->validate([
-            'current_password' => ['required'],
-            'password' => ['required', 'min:8', 'confirmed'],
-        ]);
-
         $user = $request->user();
 
         if (! Hash::check($request->current_password, $user->password)) {

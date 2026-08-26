@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\AssignPermissionRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Permission;
@@ -23,18 +24,12 @@ class UserPermissionController extends Controller
     /**
      * Assign permissions directly to user
      */
-    public function store(Request $request, User $user)
+    public function store(AssignPermissionRequest $request, User $user)
     {
-        $request->validate([
-            'permissions' => ['required', 'array'],
-            'permissions.*' => ['integer', 'exists:permissions,id'],
-        ]);
+        $permissionId = $request->validated()['permission_id'];
+        $permission = Permission::findOrFail($permissionId);
 
-        foreach ($request->permissions as $permissionId) {
-            $permission = Permission::findOrFail($permissionId);
-
-            $user->givePermissionTo($permission);
-        }
+        $user->givePermissionTo($permission);
 
         return response()->json([
             'message' => 'Permissions assigned successfully.',

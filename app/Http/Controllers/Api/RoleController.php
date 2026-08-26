@@ -3,67 +3,66 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreRoleRequest;
+use App\Http\Requests\UpdateRoleRequest;
+use App\Http\Resources\RoleResource;
 use Spatie\Permission\Models\Role;
-
 
 class RoleController extends Controller
 {
+    // ===========================
+    // index
+    // ===========================
     public function index()
     {
         $roles = Role::with('permissions')->get();
 
-        return response()->json([
-            'roles' => $roles,
-        ]);
+        return RoleResource::collection($roles);
     }
+    // ===========================
+    // store
+    // ===========================
 
-    public function store(Request $request)
+    public function store(StoreRoleRequest $request)
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', 'unique:roles,name'],
-        ]);
+        $validated = $request->validated();
 
         $role = Role::create([
             'name' => $validated['name'],
+            'guard_name' => $validated['guard_name'] ?? 'sanctum',
         ]);
 
-        return response()->json([
-            'message' => 'Role created successfully.',
-            'role' => $role,
-        ], 201);
+        return new RoleResource($role);
     }
 
+    // ===========================
+    // show
+    // ===========================
     public function show(Role $role)
     {
         $role->load('permissions');
 
-        return response()->json([
-            'role' => $role,
-        ]);
+        return new RoleResource($role);
     }
 
-    public function update(Request $request, Role $role)
+    // ===========================
+    // update
+    // ===========================
+    public function update(UpdateRoleRequest $request, Role $role)
     {
-        $validated = $request->validate([
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-                'unique:roles,name,'.$role->id,
-            ],
-        ]);
+        $validated = $request->validated();
 
         $role->update([
-            'name' => $validated['name'],
+            'name' => $validated['name'] ?? $role->name,
+            'guard_name' => $validated['guard_name'] ?? $role->guard_name,
         ]);
 
-        return response()->json([
-            'message' => 'Role updated successfully.',
-            'role' => $role,
-        ]);
+        return new RoleResource($role->fresh());
     }
 
+    // ===========================
+    // destroy
+    // ===========================
     public function destroy($id)
     {
         $role = Role::find($id);

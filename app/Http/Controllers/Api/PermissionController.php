@@ -3,64 +3,65 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\StorePermissionRequest;
+use App\Http\Requests\UpdatePermissionRequest;
 use Spatie\Permission\Models\Permission;
+use App\Http\Resources\PermissionResource;
+
 
 class PermissionController extends Controller
 {
+    // ===========================
+    // index
+    // ===========================
     public function index()
     {
         $permissions = Permission::all();
 
-        return response()->json([
-            'permissions' => $permissions,
-        ]);
+        return PermissionResource::collection($permissions);
     }
 
-    public function store(Request $request)
+    // ===========================
+    // store
+    // ===========================
+    public function store(StorePermissionRequest $request)
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', 'unique:permissions,name'],
-        ]);
+        $validated = $request->validated();
 
         $permission = Permission::create([
             'name' => $validated['name'],
+            'guard_name' => $validated['guard_name'] ?? 'sanctum',
         ]);
 
-        return response()->json([
-            'message' => 'Permission created successfully.',
-            'permission' => $permission,
-        ], 201);
+        return new PermissionResource($permission);
     }
+    // ===========================
+    // show
+    // ===========================
 
     public function show(Permission $permission)
     {
-        return response()->json([
-            'permission' => $permission,
-        ]);
+        return new PermissionResource($permission);
     }
+    // ===========================
+    // update
+    // ===========================
 
-    public function update(Request $request, Permission $permission)
+    public function update(UpdatePermissionRequest $request, Permission $permission)
     {
-        $validated = $request->validate([
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-                'unique:permissions,name,' . $permission->id,
-            ],
-        ]);
+        $validated = $request->validated();
 
         $permission->update([
-            'name' => $validated['name'],
+            'name' => $validated['name'] ?? $permission->name,
+            'guard_name' => $validated['guard_name'] ?? $permission->guard_name,
         ]);
 
-        return response()->json([
-            'message' => 'Permission updated successfully.',
-            'permission' => $permission,
-        ]);
+        return new PermissionResource($permission->fresh());
     }
 
+    // ===========================
+    // destroy
+    // ===========================
     public function destroy(Permission $permission)
     {
         $permission->delete();
