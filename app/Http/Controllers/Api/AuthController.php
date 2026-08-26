@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use App\Http\Resources\UserResource;
 
 class AuthController extends Controller
 {
@@ -28,8 +29,10 @@ class AuthController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
+            'is_active' => true,
         ]);
 
+        $user->sendEmailVerificationNotification();
         $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json([

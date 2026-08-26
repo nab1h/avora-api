@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\UserPermissionController;
 use App\Http\Controllers\Api\UserRoleController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\EmailVerificationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -39,6 +40,12 @@ Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 Route::post('/change-password', [AuthController::class, 'changePassword'])->middleware('auth:sanctum');
 Route::put('/profile', [AuthController::class, 'updateProfile'])->middleware('auth:sanctum');
 
+// ==========================
+// email verification routes
+// ==========================
+Route::get('/email/verify/{id}/{hash}',[EmailVerificationController::class, 'verify'])->name('verification.verify');
+Route::post('/email/verification-notification',[EmailVerificationController::class, 'resend'])->middleware(['auth:sanctum','throttle:5,60',]);
+
 // ==========================================================================================================
 // ==========================================================================================================
 // PROMSSIONS AND ROLES ROUTES
@@ -49,7 +56,7 @@ Route::put('/profile', [AuthController::class, 'updateProfile'])->middleware('au
 // manage-roles
 // ==========================
 
-Route::middleware(['auth:sanctum', 'permission:manage-roles'])->group(function () {
+Route::middleware(['auth:sanctum', 'permission:manage-roles', 'verified' , 'active'])->group(function () {
 
     Route::apiResource('roles', RoleController::class);
 
