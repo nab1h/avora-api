@@ -24,6 +24,11 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
 // ==========================
+// google auth routes
+// ==========================
+Route::get('/auth/google/redirect', [AuthController::class, 'googleRedirect']);
+Route::get('/auth/google/callback', [AuthController::class, 'googleCallback']);
+// ==========================
 // edit profile routes
 // ==========================
 Route::middleware(['auth:sanctum', 'active'])->group(function () {

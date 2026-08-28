@@ -6,11 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ChangePasswordRequest;
 use App\Http\Requests\ForgotPasswordRequest;
 use App\Http\Requests\ResetPasswordRequest;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
-use App\Http\Resources\UserResource;
+use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
@@ -191,4 +192,60 @@ class AuthController extends Controller
             'user' => $user,
         ]);
     }
+
+    // =========================================================================
+    // googleRedirect method to redirect the user to Google's OAuth page
+    // =========================================================================
+
+    public function googleRedirect()
+    {
+        return Socialite::driver('google')->stateless()->redirect();
+    }
+
+    public function googleCallback()
+{
+    $googleUser = Socialite::driver('google')
+        ->stateless()
+        ->user();
+
+    // Find user by Google ID
+    $user = User::where('google_id', $googleUser->getId())->first();
+
+    // If not found, find by email
+    if (! $user) {
+        $user = User::where('email', $googleUser->getEmail())->first();
+    }
+
+    // Create new user if not found
+    if (! $user) {
+        $user = User::create([
+            'name' => $googleUser->getName(),
+            'email' => $googleUser->getEmail(),
+            'google_id' => $googleUser->getId(),
+            'email_verified_at' => now(),
+            'is_active' => true,
+        ]);
+    }
+
+    // Link Google account to existing user
+    if (! $user->google_id) {
+        $user->update([
+            'google_id' => $googleUser->getId(),
+        ]);
+    }
+
+    if (! $user->is_active) {
+        return response()->json([
+            'message' => 'Your account is inactive.',
+        ], 403);
+    }
+
+    $token = $user->createToken('google-auth')->plainTextToken;
+
+    return response()->json([
+        'message' => 'Google login successful.',
+        'user' => new UserResource($user),
+        'token' => $token,
+    ]);
+}
 }
