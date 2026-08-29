@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\EmailVerificationController;
+use App\Http\Controllers\Api\InvitationController;
 use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\RoleController;
@@ -8,8 +11,6 @@ use App\Http\Controllers\Api\RolePermissionController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\UserPermissionController;
 use App\Http\Controllers\Api\UserRoleController;
-use App\Http\Controllers\Api\DashboardController;
-use App\Http\Controllers\Api\EmailVerificationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -54,8 +55,8 @@ Route::put('/profile', [AuthController::class, 'updateProfile'])->middleware('au
 // ==========================
 // email verification routes
 // ==========================
-Route::get('/email/verify/{id}/{hash}',[EmailVerificationController::class, 'verify'])->name('verification.verify');
-Route::post('/email/verification-notification',[EmailVerificationController::class, 'resend'])->middleware(['auth:sanctum','throttle:5,60',]);
+Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])->name('verification.verify');
+Route::post('/email/verification-notification', [EmailVerificationController::class, 'resend'])->middleware(['auth:sanctum', 'throttle:5,60']);
 
 // ==========================================================================================================
 // ==========================================================================================================
@@ -67,23 +68,44 @@ Route::post('/email/verification-notification',[EmailVerificationController::cla
 // manage-roles
 // ==========================
 
-Route::middleware(['auth:sanctum', 'permission:manage-roles', 'verified' , 'active'])->group(function () {
+Route::middleware(['auth:sanctum', 'permission:manage-roles', 'verified', 'active'])->group(function () {
 
+    // ---------------------
+    // roles
+    // ---------------------
     Route::apiResource('roles', RoleController::class);
 
+    // ---------------------
+    // role permissions
+    // ---------------------
     Route::post('roles/{role}/permissions', [RolePermissionController::class, 'store']);
     Route::get('roles/{role}/permissions', [RolePermissionController::class, 'index']);
     Route::delete('roles/{role}/permissions/{permission}', [RolePermissionController::class, 'destroy']);
 
+    // ---------------------
+    // user roles
+    // ---------------------
     Route::post('users/{user}/roles', [UserRoleController::class, 'store']);
     Route::get('users/{user}/roles', [UserRoleController::class, 'index']);
     Route::delete('users/{user}/roles/{role}', [UserRoleController::class, 'destroy']);
 
+    // ---------------------
+    // user permissions
+    // ---------------------
     Route::post('users/{user}/permissions', [UserPermissionController::class, 'store']);
     Route::get('users/{user}/permissions', [UserPermissionController::class, 'index']);
     Route::delete('users/{user}/permissions/{permission}', [UserPermissionController::class, 'destroy']);
 
     Route::patch('users/{user}/status', [UserController::class, 'updateStatus']);
+
+    // ---------------------
+    // invitations
+    // ---------------------
+    Route::post('/invitations', [InvitationController::class, 'store']);
+    Route::post('/invitations/accept', [InvitationController::class, 'accept']);
+    Route::get('/invitations', [InvitationController::class, 'index']);
+    Route::patch('/invitations/{invitation}/revoke', [InvitationController::class,'revoke']);
+    Route::post('/invitations/{invitation}/resend', [InvitationController::class,'resend']);
 
 });
 
@@ -103,8 +125,7 @@ Route::middleware(['auth:sanctum', 'permission:manage-permissions'])->group(func
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('users', [UserController::class, 'index'])->middleware('permission:view-users');
 
-Route::post('users', [UserController::class, 'store'])->middleware('permission:view-users');
-    
+    Route::post('users', [UserController::class, 'store'])->middleware('permission:view-users');
 
     Route::get('users/{user}', [UserController::class, 'show'])->middleware('permission:view-users');
 
@@ -112,7 +133,6 @@ Route::post('users', [UserController::class, 'store'])->middleware('permission:v
 
     Route::delete('users/{user}', [UserController::class, 'destroy'])->middleware('permission:delete-users');
 });
-
 
 // ==========================================================================================================
 // ==========================================================================================================
