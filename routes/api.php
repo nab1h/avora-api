@@ -28,6 +28,12 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanc
 // ==========================
 Route::get('/auth/google/redirect', [AuthController::class, 'googleRedirect']);
 Route::get('/auth/google/callback', [AuthController::class, 'googleCallback']);
+// -------------
+// facebook auth routes
+// -------------
+Route::get('/auth/facebook/redirect', [AuthController::class, 'facebookRedirect']);
+Route::get('/auth/facebook/callback', [AuthController::class, 'facebookCallback']);
+
 // ==========================
 // edit profile routes
 // ==========================

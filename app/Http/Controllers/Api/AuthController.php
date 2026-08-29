@@ -203,49 +203,103 @@ class AuthController extends Controller
     }
 
     public function googleCallback()
-{
-    $googleUser = Socialite::driver('google')
-        ->stateless()
-        ->user();
+    {
+        $googleUser = Socialite::driver('google')
+            ->stateless()
+            ->user();
 
-    // Find user by Google ID
-    $user = User::where('google_id', $googleUser->getId())->first();
+        // Find user by Google ID
+        $user = User::where('google_id', $googleUser->getId())->first();
 
-    // If not found, find by email
-    if (! $user) {
-        $user = User::where('email', $googleUser->getEmail())->first();
-    }
+        // If not found, find by email
+        if (! $user) {
+            $user = User::where('email', $googleUser->getEmail())->first();
+        }
 
-    // Create new user if not found
-    if (! $user) {
-        $user = User::create([
-            'name' => $googleUser->getName(),
-            'email' => $googleUser->getEmail(),
-            'google_id' => $googleUser->getId(),
-            'email_verified_at' => now(),
-            'is_active' => true,
-        ]);
-    }
+        // Create new user if not found
+        if (! $user) {
+            $user = User::create([
+                'name' => $googleUser->getName(),
+                'email' => $googleUser->getEmail(),
+                'google_id' => $googleUser->getId(),
+                'email_verified_at' => now(),
+                'is_active' => true,
+            ]);
+        }
 
-    // Link Google account to existing user
-    if (! $user->google_id) {
-        $user->update([
-            'google_id' => $googleUser->getId(),
-        ]);
-    }
+        // Link Google account to existing user
+        if (! $user->google_id) {
+            $user->update([
+                'google_id' => $googleUser->getId(),
+            ]);
+        }
 
-    if (! $user->is_active) {
+        if (! $user->is_active) {
+            return response()->json([
+                'message' => 'Your account is inactive.',
+            ], 403);
+        }
+
+        $token = $user->createToken('google-auth')->plainTextToken;
+
         return response()->json([
-            'message' => 'Your account is inactive.',
-        ], 403);
+            'message' => 'Google login successful.',
+            'user' => new UserResource($user),
+            'token' => $token,
+        ]);
     }
 
-    $token = $user->createToken('google-auth')->plainTextToken;
+    // =========================================================================
+    // facebookRedirect method to redirect the user to Facebook's OAuth page
+    // =========================================================================
+    public function facebookRedirect()
+    {
+        return Socialite::driver('facebook')->stateless()->redirect();
+    }
 
-    return response()->json([
-        'message' => 'Google login successful.',
-        'user' => new UserResource($user),
-        'token' => $token,
-    ]);
-}
+    // --------------
+    // callback
+    // --------------
+    public function facebookCallback()
+    {
+        $facebookUser = Socialite::driver('facebook')
+            ->stateless()
+            ->user();
+
+        $user = User::where('facebook_id', $facebookUser->getId())->first();
+
+        if (! $user) {
+            $user = User::where('email', $facebookUser->getEmail())->first();
+        }
+
+        if (! $user) {
+            $user = User::create([
+                'name' => $facebookUser->getName(),
+                'email' => $facebookUser->getEmail(),
+                'facebook_id' => $facebookUser->getId(),
+                'email_verified_at' => now(),
+                'is_active' => true,
+            ]);
+        }
+
+        if (! $user->facebook_id) {
+            $user->update([
+                'facebook_id' => $facebookUser->getId(),
+            ]);
+        }
+
+        if (! $user->is_active) {
+            return response()->json([
+                'message' => 'Your account is inactive.',
+            ], 403);
+        }
+
+        $token = $user->createToken('facebook-auth')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Facebook login successful.',
+            'user' => new UserResource($user),
+            'token' => $token,
+        ]);
+    }
 }

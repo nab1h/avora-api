@@ -28,6 +28,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'is_active',
         'google_id',
+        'facebook_id',
     ];
 
     /**
