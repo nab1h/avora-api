@@ -2,15 +2,16 @@
 
 namespace App\Models;
 
+use App\Notifications\ResetPasswordNotification;
 use App\Notifications\VerifyEmailNotification;
 use Database\Factories\UserFactory;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmail
@@ -61,8 +62,13 @@ class User extends Authenticatable implements MustVerifyEmail
         $this->notify(new VerifyEmailNotification);
     }
 
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
+    }
+
     public function invitations(): HasMany
-{
-    return $this->hasMany(Invitation::class, 'invited_by');
-}
+    {
+        return $this->hasMany(Invitation::class, 'invited_by');
+    }
 }
