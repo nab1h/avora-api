@@ -33,7 +33,9 @@ class AuthController extends Controller
             'is_active' => true,
         ]);
 
+ 
         $user->sendEmailVerificationNotification();
+        $user->load(['roles', 'permissions']);
         $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json([
@@ -67,7 +69,7 @@ class AuthController extends Controller
                 'message' => 'Your account is inactive.',
             ], 403);
         }
-
+        $user->load(['roles', 'permissions']);
         $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json([
@@ -75,6 +77,17 @@ class AuthController extends Controller
             'user' => $user,
             'token' => $token,
         ]);
+    }
+
+    // ==========================================================================
+    // show me
+    // ==========================================================================
+    public function me(Request $request)
+    {
+        $user = $request->user();
+        $user->load(['roles', 'permissions']);
+
+        return new UserResource($user);
     }
 
     // ==========================================================================
