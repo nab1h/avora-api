@@ -11,10 +11,21 @@ class AssignPermissionRequest extends FormRequest
         return true;
     }
 
-    public function rules(): array
-    {
-        return [
-            'permission_id' => ['required', 'integer', 'exists:permissions,id'],
-        ];
-    }
+   public function rules(): array
+{
+    return [
+
+        'permissions' => [
+            'required',
+            'array'
+        ],
+
+
+        'permissions.*' => [
+            'integer',
+            'exists:permissions,id'
+        ],
+
+    ];
+}
 }

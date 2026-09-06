@@ -19,7 +19,7 @@ class UserRoleController extends Controller
 
     public function store(AssignRoleRequest $request, User $user)
     {
-        $roles = Role::whereIn('id', [$request->validated()['role_id']])->get();
+        $roles = Role::whereIn('id',$request->validated()['roles'])->get();
 
         $user->syncRoles($roles);
 

@@ -24,18 +24,26 @@ class UserPermissionController extends Controller
     /**
      * Assign permissions directly to user
      */
-    public function store(AssignPermissionRequest $request, User $user)
-    {
-        $permissionId = $request->validated()['permission_id'];
-        $permission = Permission::findOrFail($permissionId);
+    public function store(
+    AssignPermissionRequest $request,
+    User $user
+) {
 
-        $user->givePermissionTo($permission);
+    $permissions = Permission::whereIn(
+        'id',
+        $request->validated()['permissions']
+    )->get();
 
-        return response()->json([
-            'message' => 'Permissions assigned successfully.',
-            'permissions' => $user->getDirectPermissions(),
-        ]);
-    }
+
+    $user->syncPermissions($permissions);
+
+
+    return response()->json([
+        'message'=>'Permissions synced successfully.',
+        'user'=>$user->load('permissions'),
+    ]);
+
+}
 
     /**
      * Remove direct permission from user

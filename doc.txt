@@ -2,6 +2,8 @@
 fortify لتسجيل الدخول والمستخدمين
 sunctum للتحقق من المستخدم
 spatie للصلاحيات 
+socialite لتسجيل بحساب جوجل والفيس بوك
+
 
 
 
@@ -29,3 +31,52 @@ GET /api/users?sort=created_at
 GET /api/users?search=ahmed&role=admin&sort=-created_at&page=1&per_page=5
 وتقدر تجمع كل حاجة
 =================================================
+42|voV2aqU6WSggO0GKja0g7Kp5uxq98kkamIxm9JaPc9de0b3c
+
+
+ahmeddd@example.com
+NeswPassword1234
+
+
+  "password": "ndA5edm2K6YkCm@s",
+
+اصلاح عرض الافاتر
+اظهار اعدادات الروفايل 
+عمل كراد اليوزر
+كراد الصلاحيات 
+كراد الرول 
+
+==========================
+{isSuccess && (
+            <p className="text-sm text-green-500">
+              Password changed successfully
+            </p>
+          )}
+
+
+==========================
+{isLoading ? (
+            <Button variant="secondary" disabled>
+              Changing...
+              <Spinner data-icon="inline-start" />
+            </Button>
+          ) : (
+            <Button type="submit">
+              Change password
+            </Button>
+          )}
+==========================
+
+
+"use client";
+
+import type { ReactNode } from "react";
+import { ProtectedRoute } from "@/components/protected-route";
+
+export default function ProtectedLayout({ children }: { children: ReactNode }) {
+  return <ProtectedRoute>{children}</ProtectedRoute>;
+}
+26911221602251
+JT2038892
+01284848505
+7sSW%nrS2$YntQ$

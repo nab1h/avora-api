@@ -11,10 +11,22 @@ class AssignRoleRequest extends FormRequest
         return true;
     }
 
+
     public function rules(): array
     {
         return [
-            'role_id' => ['required', 'integer', 'exists:roles,id'],
+
+            'roles' => [
+                'required',
+                'array'
+            ],
+
+
+            'roles.*' => [
+                'integer',
+                'exists:roles,id'
+            ],
+
         ];
     }
 }
