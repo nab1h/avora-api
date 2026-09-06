@@ -26,10 +26,12 @@ class UserPermissionController extends Controller
      */
     public function store(AssignPermissionRequest $request, User $user)
     {
-        $permissionId = $request->validated()['permission_id'];
-        $permission = Permission::findOrFail($permissionId);
+        $permissions = Permission::whereIn(
+        'id',
+        $request->validated()['permissions']
+    )->get();
 
-        $user->givePermissionTo($permission);
+        $user->syncPermissions($permissions);
 
         return response()->json([
             'message' => 'Permissions assigned successfully.',

@@ -88,6 +88,14 @@ class UserController extends Controller
 // =========================== 
     public function update(UpdateUserRequest $request, User $user)
     {
+        if(isset($data['password'])){
+
+        $data['password'] = Hash::make(
+            $data['password']
+        );
+
+    }
+    
         $user->update($request->validated());
 
         return new UserResource($user->fresh());
