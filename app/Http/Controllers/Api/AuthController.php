@@ -255,11 +255,11 @@ class AuthController extends Controller
 
         $token = $user->createToken('google-auth')->plainTextToken;
 
-        return response()->json([
-            'message' => 'Google login successful.',
-            'user' => new UserResource($user),
-            'token' => $token,
-        ]);
+        return redirect(
+            config('app.frontend_url')
+    . '/auth/google/callback?token=' . $token
+    . '&user=' . urlencode(json_encode(new UserResource($user)))
+        );
     }
 
     // =========================================================================

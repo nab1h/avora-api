@@ -33,6 +33,12 @@ public function rules(): array
             Rule::unique('users', 'email')->ignore($user->id),
         ],
 
+        'password' => [
+            'sometimes',
+            'string',
+            'min:8',
+        ],
+
         'is_active' => [
             'sometimes',
             'boolean',

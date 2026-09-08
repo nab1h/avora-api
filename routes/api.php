@@ -55,7 +55,7 @@ Route::put('/profile', [AuthController::class, 'updateProfile'])->middleware('au
 // email verification routes
 // ==========================
 Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])->name('verification.verify');
-Route::post('/email/verification-notification', [EmailVerificationController::class, 'resend'])->middleware(['auth:sanctum', 'throttle:10,60']);
+Route::post('/email/verification-notification', [EmailVerificationController::class, 'resend'])->middleware(['auth:sanctum', 'throttle:20,60']);
 
 // ==========================================================================================================
 // ==========================================================================================================

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
+use App\Notifications\VerifyEmailNotification;
 
 class EmailVerificationController extends Controller
 {
@@ -58,10 +59,27 @@ class EmailVerificationController extends Controller
             ], 400);
         }
 
-        $user->sendEmailVerificationNotification();
+        // Laravel verification URL
+        $verificationUrl = URL::temporarySignedRoute(
+            'verification.verify',
+            now()->addMinutes(60),
+            [
+                'id' => $user->getKey(),
+                'hash' => sha1($user->getEmailForVerification()),
+            ]
+        );
+
+        // Convert Laravel URL to Frontend URL
+        $frontendUrl = config('app.frontend_url') . '/email-verify/'
+            . $user->getKey() . '/' . sha1($user->getEmailForVerification())
+            . '?' . parse_url($verificationUrl, PHP_URL_QUERY);
+
+        // Send notification
+        $user->notify(new VerifyEmailNotification($frontendUrl));
 
         return response()->json([
             'message' => 'Verification email sent successfully.',
+            'url' => $frontendUrl,
         ]);
     }
 }

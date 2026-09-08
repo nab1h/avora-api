@@ -27,27 +27,64 @@ class InvitationController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'email' => ['required', 'email'],
-            'role_id' => ['required', 'exists:roles,id'],
-        ]);
+{
 
-        $invitation = Invitation::create([
-            'email' => $validated['email'],
-            'role_id' => $validated['role_id'],
-            'invited_by' => $request->user()->id,
-            'token' => Str::random(64),
-            'expires_at' => now()->addHours(24),
-        ]);
+    $validated = $request->validate([
+        'email'=>'required|email',
+        'role_id'=>'required|exists:roles,id'
+    ]);
 
-        Notification::route('mail', $invitation->email)
-            ->notify(new InvitationNotification($invitation));
+
+
+    $exists = User::where(
+        'email',
+        $validated['email']
+    )->exists();
+
+
+
+    if($exists){
 
         return response()->json([
-            'message' => 'Invitation created successfully.',
-        ], 201);
+
+            'message'=>'This email already exists as a user.'
+
+        ],409);
+
     }
+
+
+
+    $invitation = Invitation::create([
+
+        'email' => $validated['email'],
+
+        'role_id' => $validated['role_id'],
+
+        'invited_by' => $request->user()->id,
+
+        'token' => Str::random(64),
+
+        'expires_at' => now()->addHours(24),
+
+    ]);
+
+
+
+    Notification::route('mail', $invitation->email)
+        ->notify(
+            new InvitationNotification($invitation)
+        );
+
+
+
+    return response()->json([
+
+        'message' => 'Invitation created successfully.',
+
+    ],201);
+
+}
 
     public function accept(Request $request)
     {
