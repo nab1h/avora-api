@@ -26,9 +26,9 @@ class UserResource extends JsonResource
                 return RoleResource::collection($this->roles);
             }),
 
-            'permissions' => $this->whenLoaded('permissions', function () {
-                return PermissionResource::collection($this->permissions);
-            }),
+            'permissions' => PermissionResource::collection(
+            $this->getAllPermissions()
+        ),
 
         ];
     }
