@@ -7,6 +7,7 @@ use App\Http\Requests\ChangePasswordRequest;
 use App\Http\Requests\ForgotPasswordRequest;
 use App\Http\Requests\ResetPasswordRequest;
 use App\Http\Resources\UserResource;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -33,14 +34,12 @@ class AuthController extends Controller
             'is_active' => true,
         ]);
 
- 
-        $user->sendEmailVerificationNotification();
         $user->load(['roles', 'permissions']);
         $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json([
             'message' => 'User registered successfully',
-            'user' => $user,
+            'user' => new UserResource($user),
             'token' => $token,
         ], 201);
     }
@@ -69,12 +68,12 @@ class AuthController extends Controller
                 'message' => 'Your account is inactive.',
             ], 403);
         }
-        $user->load(['roles', 'permissions']);
+        $user->load('roles');
         $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json([
             'message' => 'Login successful',
-            'user' => $user,
+            'user' => new UserResource($user),
             'token' => $token,
         ]);
     }
