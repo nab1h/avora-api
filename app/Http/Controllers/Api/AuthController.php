@@ -7,7 +7,6 @@ use App\Http\Requests\ChangePasswordRequest;
 use App\Http\Requests\ForgotPasswordRequest;
 use App\Http\Requests\ResetPasswordRequest;
 use App\Http\Resources\UserResource;
-use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -34,7 +33,8 @@ class AuthController extends Controller
             'is_active' => true,
         ]);
 
-        $user->load(['roles', 'permissions']);
+        $user->sendEmailVerificationNotification();
+        $user->load('roles');
         $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json([
