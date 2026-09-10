@@ -17,7 +17,6 @@ class AssignRoleRequest extends FormRequest
         return [
 
             'roles' => [
-                'required',
                 'array'
             ],
 
