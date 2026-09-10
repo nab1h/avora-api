@@ -16,7 +16,6 @@ class AssignPermissionRequest extends FormRequest
     return [
 
         'permissions' => [
-            'required',
             'array'
         ],
 
