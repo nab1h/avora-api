@@ -217,47 +217,42 @@ class AuthController extends Controller
     public function googleCallback()
     {
         $googleUser = Socialite::driver('google')
-            ->stateless()
-            ->user();
+        ->stateless()
+        ->user();
 
-        // Find user by Google ID
-        $user = User::where('google_id', $googleUser->getId())->first();
+    $user = User::where('google_id', $googleUser->getId())->first();
 
-        // If not found, find by email
-        if (! $user) {
-            $user = User::where('email', $googleUser->getEmail())->first();
-        }
+    if (!$user) {
+        $user = User::where('email', $googleUser->getEmail())->first();
+    }
 
-        // Create new user if not found
-        if (! $user) {
-            $user = User::create([
-                'name' => $googleUser->getName(),
-                'email' => $googleUser->getEmail(),
-                'google_id' => $googleUser->getId(),
-                'email_verified_at' => now(),
-                'is_active' => true,
-            ]);
-        }
+    if (!$user) {
+        $user = User::create([
+            'name' => $googleUser->getName(),
+            'email' => $googleUser->getEmail(),
+            'google_id' => $googleUser->getId(),
+            'email_verified_at' => now(),
+            'is_active' => true,
+        ]);
+    } else {
+        $user->update([
+            'google_id' => $googleUser->getId(),
+            'email_verified_at' => $user->email_verified_at ?? now(),
+        ]);
+    }
 
-        // Link Google account to existing user
-        if (! $user->google_id) {
-            $user->update([
-                'google_id' => $googleUser->getId(),
-            ]);
-        }
+    if (!$user->is_active) {
+        return response()->json([
+            'message' => 'Your account is inactive.',
+        ], 403);
+    }
 
-        if (! $user->is_active) {
-            return response()->json([
-                'message' => 'Your account is inactive.',
-            ], 403);
-        }
-
-        $token = $user->createToken('google-auth')->plainTextToken;
+    $token = $user->createToken('google-auth')->plainTextToken;
 
         return redirect(
             config('app.frontend_url')
-    . '/auth/google/callback?token=' . $token
-    . '&user=' . urlencode(json_encode(new UserResource($user)))
+    .'/auth/google/callback?token='.$token
+    .'&user='.urlencode(json_encode(new UserResource($user)))
         );
     }
 
