@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Validation\ValidationException;
 use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
@@ -162,14 +163,16 @@ class AuthController extends Controller
     {
         $user = $request->user();
 
-        if (! Hash::check($request->current_password, $user->password)) {
-            return response()->json([
-                'message' => 'Current password is incorrect.',
-            ], 422);
+        $isGoogleUserWithoutPassword = $user->password === null && $user->google_id !== null;
+
+        if (! $isGoogleUserWithoutPassword && ! Hash::check($request->validated('current_password'), $user->password)) {
+            throw ValidationException::withMessages([
+                'current_password' => ['The current password is incorrect.'],
+            ]);
         }
 
         $user->update([
-            'password' => Hash::make($request->password),
+            'password' => $request->validated('password'),
         ]);
 
         // اختياري: تسجيل خروج من كل الأجهزة

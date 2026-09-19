@@ -14,8 +14,14 @@ class ChangePasswordRequest extends FormRequest
 
     public function rules(): array
     {
+        $user = $this->user();
+        $isGoogleUserWithoutPassword = $user?->password === null && $user?->google_id !== null;
+        $requiresCurrentPassword = ! $isGoogleUserWithoutPassword;
+
         return [
-            'current_password' => ['required', 'current_password'],
+            'current_password' => $requiresCurrentPassword
+                ? ['required', 'string']
+                : ['nullable', 'string'],
             'password' => ['required', 'string', 'confirmed', Password::defaults()],
         ];
     }
