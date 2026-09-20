@@ -39,6 +39,7 @@ Route::get('/auth/facebook/callback', [AuthController::class, 'facebookCallback'
 // ==========================
 Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'show']);
+    Route::post('/profile', [ProfileController::class, 'update']);
     Route::put('/profile', [ProfileController::class, 'update']);
     Route::patch('/profile', [ProfileController::class, 'update']);
 });
@@ -49,7 +50,6 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 Route::post('/change-password', [AuthController::class, 'changePassword'])->middleware('auth:sanctum');
-Route::put('/profile', [AuthController::class, 'updateProfile'])->middleware('auth:sanctum');
 
 // ==========================
 // email verification routes
