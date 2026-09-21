@@ -1,17 +1,20 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\RolePermissionController;
+use App\Http\Controllers\Api\SocialLinkController;
+use App\Http\Controllers\Api\SocialPlatformController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\UserPermissionController;
 use App\Http\Controllers\Api\UserRoleController;
-use App\Http\Controllers\Api\DashboardController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\Api\ServiceController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('social-links', [SocialLinkController::class, 'index']);
 // ==========================
 // auth routes
 // ==========================
@@ -84,8 +87,7 @@ Route::middleware(['auth:sanctum', 'permission:manage-permissions'])->group(func
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('users', [UserController::class, 'index'])->middleware('permission:view-users');
 
-Route::post('users', [UserController::class, 'store'])->middleware('permission:view-users');
-    
+    Route::post('users', [UserController::class, 'store'])->middleware('permission:view-users');
 
     Route::get('users/{user}', [UserController::class, 'show'])->middleware('permission:view-users');
 
@@ -94,7 +96,6 @@ Route::post('users', [UserController::class, 'store'])->middleware('permission:v
     Route::delete('users/{user}', [UserController::class, 'destroy'])->middleware('permission:delete-users');
 });
 
-
 // ==========================================================================================================
 // ==========================================================================================================
 // dashboard routes
@@ -102,3 +103,34 @@ Route::post('users', [UserController::class, 'store'])->middleware('permission:v
 // ==========================================================================================================
 
 Route::middleware(['auth:sanctum', 'permission:view-dashboard'])->get('/dashboard/stats', [DashboardController::class, 'stats']);
+
+// ==========================================================================================================
+// ==========================================================================================================
+// Settings Routes
+// ==========================================================================================================
+// ==========================================================================================================
+
+Route::middleware(['auth:sanctum', 'permission:manage-roles'])->group(function () {
+
+    Route::get('admin/social-links', [SocialLinkController::class, 'adminIndex']);
+    Route::post('social-links', [SocialLinkController::class, 'store']);
+    Route::get('social-links/{socialLink}', [SocialLinkController::class, 'show']);
+    Route::put('social-links/{socialLink}', [SocialLinkController::class, 'update']);
+    Route::delete('social-links/{socialLink}', [SocialLinkController::class, 'destroy']);
+
+});
+
+Route::get('social-links', [SocialLinkController::class, 'index']);
+Route::get('social-platforms', [SocialPlatformController::class, 'index']);
+
+// ==========================================================================================================
+Route::middleware(['auth:sanctum', 'permission:manage-roles'])->group(function () {
+    Route::get('admin/services', [ServiceController::class,'adminIndex',]);
+    Route::post('services', [ServiceController::class,'store',]);
+    Route::get('services/{service}', [ServiceController::class,'show',]);
+    Route::put('services/{service}', [ServiceController::class,'update',]);
+    Route::delete('services/{service}', [ServiceController::class,'destroy',]);
+});
+
+Route::get('services', [ServiceController::class,'index']);
+// ==========================================================================================================
