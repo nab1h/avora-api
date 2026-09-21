@@ -19,29 +19,23 @@ use App\Http\Controllers\Api\ServiceController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('social-links', [SocialLinkController::class, 'index']);
-// ==========================
-// auth routes
-// ==========================
+
+// Authentication and account access
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 Route::get('/me', [AuthController::class, 'me'])->middleware('auth:sanctum');
 
-// ==========================
-// google auth routes
-// ==========================
+// Google authentication
 Route::get('/auth/google/redirect', [AuthController::class, 'googleRedirect']);
 Route::get('/auth/google/callback', [AuthController::class, 'googleCallback']);
-// -------------
-// facebook auth routes
-// -------------
+
+// Facebook authentication
 Route::get('/auth/facebook/redirect', [AuthController::class, 'facebookRedirect']);
 Route::get('/auth/facebook/callback', [AuthController::class, 'facebookCallback']);
 
-// ==========================
-// edit profile routes
-// ==========================
+// Profile management
 Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::post('/profile', [ProfileController::class, 'update']);
@@ -49,62 +43,40 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update']);
 });
 
-// ==========================
-// forgot password route
-// ==========================
+// Password management
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 Route::post('/change-password', [AuthController::class, 'changePassword'])->middleware('auth:sanctum');
 
-// ==========================
-// email verification routes
-// ==========================
+// Email verification
 Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])->name('verification.verify');
 Route::post('/email/verification-notification', [EmailVerificationController::class, 'resend'])->middleware(['auth:sanctum', 'throttle:20,60']);
 
-// ==========================================================================================================
-// ==========================================================================================================
-// PROMSSIONS AND ROLES ROUTES
-// ==========================================================================================================
-// ==========================================================================================================
-
-// ==========================
-// manage-roles
-// ==========================
+// Roles, permissions, and invitations
 
 Route::middleware(['auth:sanctum', 'permission:manage-roles', 'verified', 'active'])->group(function () {
 
-    // ---------------------
-    // roles
-    // ---------------------
+    // Role management
     Route::apiResource('roles', RoleController::class);
 
-    // ---------------------
-    // role permissions
-    // ---------------------
+    // Role permissions
     Route::post('roles/{role}/permissions', [RolePermissionController::class, 'store']);
     Route::get('roles/{role}/permissions', [RolePermissionController::class, 'index']);
     Route::delete('roles/{role}/permissions/{permission}', [RolePermissionController::class, 'destroy']);
 
-    // ---------------------
-    // user roles
-    // ---------------------
+    // User roles
     Route::post('users/{user}/roles', [UserRoleController::class, 'store']);
     Route::get('users/{user}/roles', [UserRoleController::class, 'index']);
     Route::delete('users/{user}/roles/{role}', [UserRoleController::class, 'destroy']);
 
-    // ---------------------
-    // user permissions
-    // ---------------------
+    // User permissions
     Route::post('users/{user}/permissions', [UserPermissionController::class, 'store']);
     Route::get('users/{user}/permissions', [UserPermissionController::class, 'index']);
     Route::delete('users/{user}/permissions/{permission}', [UserPermissionController::class, 'destroy']);
 
     Route::patch('users/{user}/status', [UserController::class, 'updateStatus']);
 
-    // ---------------------
-    // invitations
-    // ---------------------
+    // Invitation management
     Route::post('/invitations', [InvitationController::class, 'store']);
     Route::post('/invitations/accept', [InvitationController::class, 'accept']);
     Route::get('/invitations', [InvitationController::class, 'index']);
@@ -113,19 +85,13 @@ Route::middleware(['auth:sanctum', 'permission:manage-roles', 'verified', 'activ
 
 });
 
-// ==========================
-// manage-permissions
-// ==========================
+// Permission management
 Route::middleware(['auth:sanctum', 'permission:manage-permissions'])->group(function () {
 
     Route::apiResource('permissions', PermissionController::class);
 });
 
-// ==========================================================================================================
-// ==========================================================================================================
-// users routes
-// ==========================================================================================================
-// ==========================================================================================================
+// User management
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('users', [UserController::class, 'index'])->middleware('permission:view-users');
 
@@ -138,19 +104,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('users/{user}', [UserController::class, 'destroy'])->middleware('permission:delete-users');
 });
 
-// ==========================================================================================================
-// ==========================================================================================================
-// dashboard routes
-// ==========================================================================================================
-// ==========================================================================================================
+// Dashboard
 
 Route::middleware(['auth:sanctum', 'permission:view-dashboard'])->get('/dashboard/stats', [DashboardController::class, 'stats']);
 
-// ==========================================================================================================
-// ==========================================================================================================
-// Settings Routes
-// ==========================================================================================================
-// ==========================================================================================================
+// Social links and platform settings
 
 Route::middleware(['auth:sanctum', 'permission:manage-roles'])->group(function () {
 
@@ -165,7 +123,7 @@ Route::middleware(['auth:sanctum', 'permission:manage-roles'])->group(function (
 Route::get('social-links', [SocialLinkController::class, 'index']);
 Route::get('social-platforms', [SocialPlatformController::class, 'index']);
 
-// ==========================================================================================================
+// Service management
 Route::middleware(['auth:sanctum', 'permission:manage-roles'])->group(function () {
     Route::get('admin/services', [ServiceController::class,'adminIndex',]);
     Route::post('services', [ServiceController::class,'store',]);
@@ -175,8 +133,8 @@ Route::middleware(['auth:sanctum', 'permission:manage-roles'])->group(function (
 });
 
 Route::get('services', [ServiceController::class,'index']);
-// ==========================================================================================================
 
+// Gallery management
 Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('admin/gallery', [GalleryController::class, 'adminIndex']);
