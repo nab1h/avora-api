@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\SocialPlatformController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\UserPermissionController;
 use App\Http\Controllers\Api\UserRoleController;
+use App\Http\Controllers\Api\GalleryController;
 use App\Http\Controllers\Api\ServiceController;
 use Illuminate\Support\Facades\Route;
 
@@ -175,3 +176,15 @@ Route::middleware(['auth:sanctum', 'permission:manage-roles'])->group(function (
 
 Route::get('services', [ServiceController::class,'index']);
 // ==========================================================================================================
+
+Route::middleware('auth:sanctum')->group(function () {
+
+    Route::get('admin/gallery', [GalleryController::class, 'adminIndex']);
+
+    Route::post('gallery', [GalleryController::class, 'store']);
+
+    Route::delete('gallery/bulk-delete', [GalleryController::class, 'bulkDestroy']);
+
+    Route::delete('gallery/{galleryItem}', [GalleryController::class, 'destroy']);
+
+});
