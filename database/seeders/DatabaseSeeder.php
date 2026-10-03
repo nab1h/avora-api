@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             SocialPlatformSeeder::class,
             ServiceSeeder::class,
+            SettingsSeeder::class,
         ]);
 
     }
