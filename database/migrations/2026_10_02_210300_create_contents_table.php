@@ -6,29 +6,23 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('contact_numbers', function (Blueprint $table) {
+        Schema::create('contents', function (Blueprint $table) {
             $table->id();
-
-            $table->string('type');
-            $table->string('number');
-
-            $table->boolean('is_active')->default(true);
+            $table->string('page')->index();
+            $table->string('section')->index();
+            $table->string('key');
+            $table->text('value')->nullable();
+            $table->string('type')->default('text');
             $table->unsignedInteger('sort_order')->default(0);
-
             $table->timestamps();
+            $table->unique(['page', 'section', 'key']);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('contact_numbers');
+        Schema::dropIfExists('contents');
     }
 };
