@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\SeoPageController;
+use App\Http\Controllers\Admin\SettingsController as AdminSettingsController;
+use App\Http\Controllers\Admin\ContentController as AdminContentController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\EmailVerificationController;
@@ -15,11 +18,20 @@ use App\Http\Controllers\Api\UserPermissionController;
 use App\Http\Controllers\Api\UserRoleController;
 use App\Http\Controllers\Api\GalleryController;
 use App\Http\Controllers\Api\ServiceController;
+use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\SeoController;
+use App\Http\Controllers\ContentController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('social-links', [SocialLinkController::class, 'index']);
 
 // Authentication and account access
+
+Route::middleware(['auth:sanctum', 'permission:view-dashboard'])
+    ->get('/dashboard/stats', [DashboardController::class, 'stats']);
+
+// Authentication
+
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -173,4 +185,29 @@ Route::middleware(['auth:sanctum', 'permission:manage-settings'])->prefix('admin
     Route::get('/contents/{content}', [AdminContentController::class, 'show'])->whereNumber('content');
     Route::put('/contents/{content}', [AdminContentController::class, 'update'])->whereNumber('content');
     Route::delete('/contents/{content}', [AdminContentController::class, 'destroy'])->whereNumber('content');
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('admin/gallery', [GalleryController::class, 'adminIndex']);
+    Route::post('gallery', [GalleryController::class, 'store']);
+    Route::delete('gallery/bulk-delete', [GalleryController::class, 'bulkDestroy']);
+    Route::delete('gallery/{galleryItem}', [GalleryController::class, 'destroy']);
+});
+
+// ============================================================================
+// ============================================================================
+// website settings
+// ===========================================================================
+// ==========================================================================
+
+Route::get('/settings', [SettingsController::class, 'index']);
+Route::get('/seo/{page}', [SeoController::class, 'show']);
+Route::get('/contents/{page}', [ContentController::class, 'show']);
+
+Route::middleware(['auth:sanctum', 'permission:manage-roles'])->group(function () {
+    Route::get('/admin/settings', [AdminSettingsController::class, 'index']);
+    Route::post('/admin/settings', [AdminSettingsController::class, 'update']);
+});
+
+Route::middleware(['auth:sanctum', 'permission:manage-settings'])->prefix('admin')->group(function () {
+    Route::apiResource('seo-pages', SeoPageController::class);
 });

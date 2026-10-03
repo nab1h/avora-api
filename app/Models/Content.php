@@ -3,7 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+<<<<<<< HEAD
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+=======
+>>>>>>> 678db43 (done content)
 
 class Content extends Model
 {
@@ -13,6 +16,7 @@ class Content extends Model
         'key',
         'value',
         'type',
+<<<<<<< HEAD
         'gallery_id',
         'sort_order',
     ];
@@ -22,3 +26,8 @@ class Content extends Model
         return $this->belongsTo(GalleryItem::class, 'gallery_id');
     }
 }
+=======
+        'sort_order',
+    ];
+}
+>>>>>>> 678db43 (done content)

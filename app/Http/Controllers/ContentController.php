@@ -10,6 +10,7 @@ class ContentController extends Controller
 {
     public function show(string $page): JsonResponse
     {
+<<<<<<< HEAD
         $contents = Content::query()
             ->where('page', $page)
             ->with('galleryItem')
@@ -25,3 +26,20 @@ class ContentController extends Controller
 
     
 }
+=======
+        $contents = Content::where('page', $page)
+            ->orderBy('section')
+            ->orderBy('sort_order')
+            ->get()
+            ->groupBy('section');
+
+        $data = $contents->map(function ($section) {
+            return ContentResource::collection($section);
+        });
+
+        return response()->json([
+            'data' => $data,
+        ]);
+    }
+}
+>>>>>>> 678db43 (done content)
