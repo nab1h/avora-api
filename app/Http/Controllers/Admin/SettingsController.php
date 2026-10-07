@@ -49,14 +49,11 @@ class SettingsController extends Controller
                 'type' => 'string',
             ],
 
-<<<<<<< HEAD
             'contact_whatsapp' => [
                 'group' => 'contact',
                 'type' => 'string',
             ],
 
-=======
->>>>>>> 678db43 (done content)
             'contact_address' => [
                 'group' => 'contact',
                 'type' => 'text',
