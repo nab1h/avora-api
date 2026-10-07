@@ -145,4 +145,32 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::delete('gallery/{galleryItem}', [GalleryController::class, 'destroy']);
 
+
+// ============================================================================
+// ============================================================================
+// website settings
+// ===========================================================================
+// ==========================================================================
+
+Route::get('/settings', [SettingsController::class, 'index']);
+Route::get('/seo/{page}', [SeoController::class, 'show']);
+Route::get('/contents/{page}', [ContentController::class, 'show']);
+
+Route::middleware(['auth:sanctum', 'permission:manage-roles'])->group(function () {
+    Route::get('/admin/settings', [AdminSettingsController::class, 'index']);
+    Route::post('/admin/settings', [AdminSettingsController::class, 'update']);
+});
+
+Route::middleware(['auth:sanctum', 'permission:manage-settings'])->prefix('admin')->group(function () {
+    Route::apiResource('seo-pages', SeoPageController::class);
+});
+
+
+Route::middleware(['auth:sanctum', 'permission:manage-settings'])->prefix('admin')->group(function () {
+    Route::get('/contents/pages', [AdminContentController::class, 'pages']);
+    Route::post('/contents', [AdminContentController::class, 'store']);
+    Route::get('/contents', [AdminContentController::class, 'index']);
+    Route::get('/contents/{content}', [AdminContentController::class, 'show'])->whereNumber('content');
+    Route::put('/contents/{content}', [AdminContentController::class, 'update'])->whereNumber('content');
+    Route::delete('/contents/{content}', [AdminContentController::class, 'destroy'])->whereNumber('content');
 });
