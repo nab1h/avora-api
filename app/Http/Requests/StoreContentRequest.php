@@ -14,6 +14,13 @@ class StoreContentRequest extends FormRequest
 
     public function rules(): array
     {
+        $valueRules = match ($this->input('type')) {
+            'number' => ['numeric'],
+            'boolean' => ['boolean'],
+            'text', 'textarea', 'url' => ['string'],
+            default => [],
+        };
+
         return [
             'page' => [
                 'required',
@@ -40,7 +47,7 @@ class StoreContentRequest extends FormRequest
 
             'value' => [
                 'nullable',
-                'string',
+                ...$valueRules,
             ],
 
             'type' => [
@@ -61,10 +68,10 @@ class StoreContentRequest extends FormRequest
                 'min:0',
             ],
 
-            'image' => [
+            'gallery_id' => [
                 'nullable',
-                'image',
-                'max:2048',
+                'exists:gallery_items,id',
+                'required_if:type,image',
             ],
         ];
     }

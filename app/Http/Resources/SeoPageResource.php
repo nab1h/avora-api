@@ -13,6 +13,7 @@ class SeoPageResource extends JsonResource
         return [
             'id' => $this->id,
             'page' => $this->page,
+            'locale' => $this->locale,
             'title' => $this->title,
             'description' => $this->description,
             'keywords' => $this->keywords,

@@ -83,6 +83,12 @@ class UpdateSettingsRequest extends FormRequest
                 'nullable',
                 'string',
             ],
+            
+            'contact_whatsapp' => [
+                'nullable', 
+                'string', 
+                'max:50'
+            ],
 
             'google_maps_url' => [
                 'nullable',

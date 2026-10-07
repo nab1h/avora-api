@@ -9,7 +9,7 @@ use App\Http\Resources\ContentResource;
 use App\Models\Content;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+
 
 class ContentController extends Controller
 {
@@ -26,6 +26,7 @@ class ContentController extends Controller
         }
 
         $contents = $query
+            ->with('galleryItem')
             ->orderBy('page')
             ->orderBy('section')
             ->orderBy('sort_order')
@@ -36,18 +37,21 @@ class ContentController extends Controller
         ]);
     }
 
+    public function show(Content $content): JsonResponse
+    {
+        return response()->json([
+            'data' => new ContentResource($content->load('galleryItem')),
+        ]);
+    }
+
+
     public function store(StoreContentRequest $request): JsonResponse
     {
-        $data = $request->validated();
+        $content = Content::create(
+            $request->validated()
+        );
 
-        if ($request->hasFile('image')) {
-            $data['value'] = $request->file('image')
-                ->store('contents', 'public');
-        }
-
-        unset($data['image']);
-
-        $content = Content::create($data);
+        $content->load('galleryItem');
 
         return response()->json([
             'message' => 'Content created successfully.',
@@ -55,61 +59,49 @@ class ContentController extends Controller
         ], 201);
     }
 
-    public function show(Content $content): JsonResponse
-    {
-        return response()->json([
-            'data' => new ContentResource($content),
-        ]);
-    }
 
     public function update(
         UpdateContentRequest $request,
         Content $content
     ): JsonResponse {
         $data = $request->validated();
+        $type = $data['type'] ?? $content->type;
 
-        if ($request->hasFile('image')) {
-            if ($content->type === 'image' && $content->value) {
-                Storage::disk('public')->delete($content->value);
-            }
-
-            $data['value'] = $request->file('image')
-                ->store('contents', 'public');
+        if ($type === 'image') {
+            $data['value'] = null;
+        } else {
+            $data['gallery_id'] = null;
         }
-
-        unset($data['image']);
 
         $content->update($data);
 
         return response()->json([
             'message' => 'Content updated successfully.',
-            'data' => new ContentResource($content->fresh()),
+            'data' => new ContentResource($content->fresh()->load('galleryItem')),
         ]);
     }
+
 
     public function destroy(Content $content): JsonResponse
-    {
-        if ($content->type === 'image' && $content->value) {
-            Storage::disk('public')->delete($content->value);
-        }
+{
+    $content->delete();
 
-        $content->delete();
-
-        return response()->json([
-            'message' => 'Content deleted successfully.',
-        ]);
-    }
+    return response()->json([
+        'message' => 'Content deleted successfully.',
+    ]);
+}
 
     public function pages(): JsonResponse
-    {
-        $pages = Content::query()
-            ->select('page')
-            ->distinct()
-            ->orderBy('page')
-            ->pluck('page');
+{
+    $pages = Content::query()
+        ->select('page')
+        ->selectRaw('MIN(id) as first_id')
+        ->groupBy('page')
+        ->orderBy('first_id')
+        ->pluck('page');
 
-        return response()->json([
-            'data' => $pages,
-        ]);
-    }
+    return response()->json([
+        'data' => $pages,
+    ]);
+}
 }
