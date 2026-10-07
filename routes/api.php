@@ -146,5 +146,9 @@ Route::middleware(['auth:sanctum', 'permission:manage-settings'])->prefix('admin
 
 Route::middleware(['auth:sanctum', 'permission:manage-settings'])->prefix('admin')->group(function () {
     Route::get('/contents/pages', [AdminContentController::class, 'pages']);
-    Route::apiResource('contents', AdminContentController::class);
+    Route::post('/contents', [AdminContentController::class, 'store']);
+    Route::get('/contents', [AdminContentController::class, 'index']);
+    Route::get('/contents/{content}', [AdminContentController::class, 'show'])->whereNumber('content');
+    Route::put('/contents/{content}', [AdminContentController::class, 'update'])->whereNumber('content');
+    Route::delete('/contents/{content}', [AdminContentController::class, 'destroy'])->whereNumber('content');
 });

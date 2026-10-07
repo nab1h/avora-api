@@ -49,6 +49,11 @@ class SettingsController extends Controller
                 'type' => 'string',
             ],
 
+            'contact_whatsapp' => [
+                'group' => 'contact',
+                'type' => 'string',
+            ],
+
             'contact_address' => [
                 'group' => 'contact',
                 'type' => 'text',
