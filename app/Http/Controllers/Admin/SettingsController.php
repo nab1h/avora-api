@@ -58,6 +58,10 @@ class SettingsController extends Controller
                 'group' => 'contact',
                 'type' => 'text',
             ],
+            'contact_address_ar' => [
+                'group' => 'contact',
+                'type' => 'text',
+            ],
 
             'google_maps_url' => [
                 'group' => 'maps',

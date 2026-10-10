@@ -74,6 +74,11 @@ class UpdateSettingsRequest extends FormRequest
                 'nullable',
                 'string',
             ],
+
+            'contact_address_ar' => [
+                'nullable',
+                'string',
+            ],
             'contact_whatsapp' => [
                 'nullable', 
                 'string', 

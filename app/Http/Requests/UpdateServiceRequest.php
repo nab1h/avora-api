@@ -23,6 +23,11 @@ class UpdateServiceRequest extends FormRequest
                 'string',
                 'max:255',
             ],
+            'name_ar' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
 
             'slug' => [
                 'sometimes',
@@ -30,12 +35,22 @@ class UpdateServiceRequest extends FormRequest
                 'max:255',
                 Rule::unique('services', 'slug')->ignore($this->service),
             ],
+            'slug_ar' => [
+                'nullable',
+                'string',
+                'max:255',
+                Rule::unique('services', 'slug_ar')->ignore($this->service),
+            ],
 
             'description' => [
                 'nullable',
                 'string',
             ],
 
+            'description_ar' => [
+                'nullable',
+                'string',
+            ],
             'image' => [
                 'sometimes',
                 'nullable',
