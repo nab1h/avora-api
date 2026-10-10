@@ -20,7 +20,16 @@ class UpdateSettingsRequest extends FormRequest
                 'max:255',
             ],
 
+            'site_name_ar' => [
+                'required',
+                'string',
+                'max:255',
+            ],
             'site_description' => [
+                'nullable',
+                'string',
+            ],
+            'site_description_ar' => [
                 'nullable',
                 'string',
             ],

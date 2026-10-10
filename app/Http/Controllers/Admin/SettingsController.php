@@ -33,8 +33,16 @@ class SettingsController extends Controller
                 'group' => 'general',
                 'type' => 'string',
             ],
+            'site_name_ar' => [
+                'group' => 'general',
+                'type' => 'string',
+            ],
 
             'site_description' => [
+                'group' => 'general',
+                'type' => 'string',
+            ],
+            'site_description_ar' => [
                 'group' => 'general',
                 'type' => 'string',
             ],
