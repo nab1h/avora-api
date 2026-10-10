@@ -22,6 +22,8 @@ class DatabaseSeeder extends Seeder
 
         ]);
         $this->call([
+            CorePagesSeeder::class,
+            SeoPagesSeeder::class,
             SocialPlatformSeeder::class,
             ServiceSeeder::class,
             SettingsSeeder::class,

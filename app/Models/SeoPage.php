@@ -8,6 +8,7 @@ class SeoPage extends Model
 {
     protected $fillable = [
         'page',
+        'locale',
         'title',
         'description',
         'keywords',
