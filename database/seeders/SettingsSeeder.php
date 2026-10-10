@@ -18,7 +18,19 @@ class SettingsSeeder extends Seeder
             ],
             [
                 'group' => 'general',
+                'key' => 'site_name_ar',
+                'value' => 'AVORA',
+                'type' => 'string',
+            ],
+            [
+                'group' => 'general',
                 'key' => 'site_description',
+                'value' => null,
+                'type' => 'string',
+            ],
+            [
+                'group' => 'general',
+                'key' => 'site_description_ar',
                 'value' => null,
                 'type' => 'string',
             ],
@@ -87,7 +99,19 @@ class SettingsSeeder extends Seeder
             ],
             [
                 'group' => 'contact',
+                'key' => 'contact_whatsapp',
+                'value' => null,
+                'type' => 'string',
+            ],
+            [
+                'group' => 'contact',
                 'key' => 'contact_address',
+                'value' => null,
+                'type' => 'text',
+            ],
+            [
+                'group' => 'contact',
+                'key' => 'contact_address_ar',
                 'value' => null,
                 'type' => 'text',
             ],
