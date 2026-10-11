@@ -48,10 +48,7 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update']);
 });
 
-Route::put('/profile', [AuthController::class, 'updateProfile'])
-    ->middleware('auth:sanctum');
-
-// Roles and permissions
+Route::put('/profile', [AuthController::class, 'updateProfile'])->middleware('auth:sanctum');
 
 // Role management
 
@@ -152,3 +149,4 @@ Route::middleware(['auth:sanctum', 'permission:manage-settings'])->prefix('admin
     Route::put('/contents/{content}', [AdminContentController::class, 'update'])->whereNumber('content');
     Route::delete('/contents/{content}', [AdminContentController::class, 'destroy'])->whereNumber('content');
 });
+
