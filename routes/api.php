@@ -1,27 +1,27 @@
 <?php
 
-use App\Http\Controllers\Admin\SeoPageController;
-use App\Http\Controllers\Admin\SettingsController as AdminSettingsController;
 use App\Http\Controllers\Admin\ContentController as AdminContentController;
+use App\Http\Controllers\Admin\SeoPageController;
+use App\Http\Controllers\Admin\SiteScriptController;
+use App\Http\Controllers\Admin\SettingsController as AdminSettingsController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\EmailVerificationController;
+use App\Http\Controllers\Api\GalleryController;
 use App\Http\Controllers\Api\InvitationController;
 use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\RolePermissionController;
+use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\SocialLinkController;
 use App\Http\Controllers\Api\SocialPlatformController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\UserPermissionController;
 use App\Http\Controllers\Api\UserRoleController;
-use Illuminate\Http\Request;
-use App\Http\Controllers\Api\GalleryController;
-use App\Http\Controllers\Api\ServiceController;
-use App\Http\Controllers\SettingsController;
-use App\Http\Controllers\SeoController;
 use App\Http\Controllers\ContentController;
+use App\Http\Controllers\SeoController;
+use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('social-links', [SocialLinkController::class, 'index']);
@@ -90,8 +90,8 @@ Route::middleware(['auth:sanctum', 'permission:manage-roles', 'verified', 'activ
     Route::post('/invitations', [InvitationController::class, 'store']);
     Route::post('/invitations/accept', [InvitationController::class, 'accept']);
     Route::get('/invitations', [InvitationController::class, 'index']);
-    Route::patch('/invitations/{invitation}/revoke', [InvitationController::class,'revoke']);
-    Route::post('/invitations/{invitation}/resend', [InvitationController::class,'resend']);
+    Route::patch('/invitations/{invitation}/revoke', [InvitationController::class, 'revoke']);
+    Route::post('/invitations/{invitation}/resend', [InvitationController::class, 'resend']);
 
 });
 
@@ -135,14 +135,14 @@ Route::get('social-platforms', [SocialPlatformController::class, 'index']);
 
 // Service management
 Route::middleware(['auth:sanctum', 'permission:manage-roles'])->group(function () {
-    Route::get('admin/services', [ServiceController::class,'adminIndex',]);
-    Route::post('services', [ServiceController::class,'store',]);
-    Route::get('services/{service}', [ServiceController::class,'show',]);
-    Route::put('services/{service}', [ServiceController::class,'update',]);
-    Route::delete('services/{service}', [ServiceController::class,'destroy',]);
+    Route::get('admin/services', [ServiceController::class, 'adminIndex']);
+    Route::post('services', [ServiceController::class, 'store']);
+    Route::get('services/{service}', [ServiceController::class, 'show']);
+    Route::put('services/{service}', [ServiceController::class, 'update']);
+    Route::delete('services/{service}', [ServiceController::class, 'destroy']);
 });
 
-Route::get('services', [ServiceController::class,'index']);
+Route::get('services', [ServiceController::class, 'index']);
 
 // Gallery management
 Route::middleware('auth:sanctum')->group(function () {
@@ -176,7 +176,6 @@ Route::middleware(['auth:sanctum', 'permission:manage-settings'])->prefix('admin
     Route::apiResource('seo-pages', SeoPageController::class);
 });
 
-
 Route::middleware(['auth:sanctum', 'permission:manage-settings'])->prefix('admin')->group(function () {
     Route::get('/contents/pages', [AdminContentController::class, 'pages']);
 
@@ -187,3 +186,6 @@ Route::middleware(['auth:sanctum', 'permission:manage-settings'])->prefix('admin
     Route::delete('/contents/{content}', [AdminContentController::class, 'destroy'])->whereNumber('content');
 });
 
+Route::middleware(['auth:sanctum', 'permission:manage-settings'])->prefix('admin')->group(function () {
+    Route::apiResource('site-scripts', SiteScriptController::class);
+});
