@@ -22,6 +22,11 @@ class StoreServiceRequest extends FormRequest
                 'string',
                 'max:255',
             ],
+            'name_ar' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
 
             'slug' => [
                 'required',
@@ -30,11 +35,20 @@ class StoreServiceRequest extends FormRequest
                 'unique:services,slug',
             ],
 
+            'slug_ar' => [
+                'nullable',
+                'string',
+                'max:255',
+                'unique:services,slug_ar',
+            ],
             'description' => [
                 'nullable',
                 'string',
             ],
-
+            'description_ar' => [
+                'nullable',
+                'string',
+            ],
             'image' => [
                 'nullable',
                 'image',
