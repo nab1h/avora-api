@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\SeoPageController;
+use App\Http\Controllers\Admin\SiteScriptController;
 use App\Http\Controllers\Admin\SettingsController as AdminSettingsController;
 use App\Http\Controllers\Admin\ContentController as AdminContentController;
 use App\Http\Controllers\Api\AuthController;
@@ -150,3 +151,6 @@ Route::middleware(['auth:sanctum', 'permission:manage-settings'])->prefix('admin
     Route::delete('/contents/{content}', [AdminContentController::class, 'destroy'])->whereNumber('content');
 });
 
+Route::middleware(['auth:sanctum', 'permission:manage-settings'])->prefix('admin')->group(function () {
+    Route::apiResource('site-scripts', SiteScriptController::class);
+});
