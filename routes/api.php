@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\SeoPageController;
 use App\Http\Controllers\Admin\SiteScriptController;
 use App\Http\Controllers\Admin\SettingsController as AdminSettingsController;
 use App\Http\Controllers\Admin\ContentController as AdminContentController;
+use App\Http\Controllers\Admin\AnalyticsDashboardController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\GalleryController;
@@ -17,8 +18,10 @@ use App\Http\Controllers\Api\SocialPlatformController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\UserPermissionController;
 use App\Http\Controllers\Api\UserRoleController;
+use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SeoController;
+use App\Http\Controllers\PublicSiteScriptController;
 use App\Http\Controllers\ContentController;
 use Illuminate\Support\Facades\Route;
 
@@ -154,3 +157,17 @@ Route::middleware(['auth:sanctum', 'permission:manage-settings'])->prefix('admin
 Route::middleware(['auth:sanctum', 'permission:manage-settings'])->prefix('admin')->group(function () {
     Route::apiResource('site-scripts', SiteScriptController::class);
 });
+
+Route::get('/site-scripts/public',[PublicSiteScriptController::class, 'index']);
+
+// Analytics Events
+Route::post('/analytics/events', [AnalyticsController::class,'store',])->middleware('throttle:30,1');
+
+Route::middleware(['auth:sanctum', 'permission:manage-settings'])
+    ->prefix('admin')
+    ->group(function () {
+        Route::get(
+            '/analytics',
+            [AnalyticsDashboardController::class, 'index']
+        );
+    });
