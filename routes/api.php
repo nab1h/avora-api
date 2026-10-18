@@ -27,7 +27,7 @@ use Illuminate\Support\Facades\Route;
 
 // Dashboard
 
-Route::middleware(['auth:sanctum', 'permission:view-dashboard'])
+Route::middleware(['auth:sanctum','active', 'permission:manage-settings'])
     ->get('/dashboard/stats', [DashboardController::class, 'stats']);
 
 // Authentication
@@ -56,7 +56,7 @@ Route::put('/profile', [AuthController::class, 'updateProfile'])->middleware('au
 
 // Role management
 
-Route::middleware(['auth:sanctum', 'permission:manage-roles'])->group(function () {
+Route::middleware(['auth:sanctum', 'permission:manage-settings'])->group(function () {
     Route::apiResource('roles', RoleController::class);
 
     Route::post('roles/{role}/permissions', [RolePermissionController::class, 'store']);
@@ -76,19 +76,19 @@ Route::middleware(['auth:sanctum', 'permission:manage-roles'])->group(function (
 
 // Permission management
 
-Route::middleware(['auth:sanctum', 'permission:manage-permissions'])->group(function () {
+Route::middleware(['auth:sanctum','permission:manage-settings'])->group(function () {
     Route::apiResource('permissions', PermissionController::class);
 });
 
 // Users
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('users', [UserController::class, 'index'])->middleware('permission:view-users');
-    Route::post('users', [UserController::class, 'store'])->middleware('permission:view-users');
-    Route::get('users/{user}', [UserController::class, 'show'])->middleware('permission:view-users');
+Route::middleware(['auth:sanctum', 'active','permission:manage-settings'])->group(function () {
+    Route::get('users', [UserController::class, 'index'])->middleware('permission:manage-settings');
+    Route::post('users', [UserController::class, 'store'])->middleware('permission:manage-settings');
+    Route::get('users/{user}', [UserController::class, 'show'])->middleware('permission:manage-settings');
     Route::match(['put', 'patch'], 'users/{user}', [UserController::class, 'update'])
-        ->middleware('permission:update-users');
-    Route::delete('users/{user}', [UserController::class, 'destroy'])->middleware('permission:delete-users');
+        ->middleware('permission:manage-settings');
+    Route::delete('users/{user}', [UserController::class, 'destroy'])->middleware('permission:manage-settings');
 });
 
 // Social links and platforms
@@ -96,7 +96,7 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::get('social-links', [SocialLinkController::class, 'index']);
 Route::get('social-platforms', [SocialPlatformController::class, 'index']);
 
-Route::middleware(['auth:sanctum', 'permission:manage-roles'])->group(function () {
+Route::middleware(['auth:sanctum','active', 'permission:manage-settings'])->group(function () {
     Route::get('admin/social-links', [SocialLinkController::class, 'adminIndex']);
     Route::post('social-links', [SocialLinkController::class, 'store']);
     Route::get('social-links/{socialLink}', [SocialLinkController::class, 'show']);
@@ -106,7 +106,7 @@ Route::middleware(['auth:sanctum', 'permission:manage-roles'])->group(function (
 
 // Services
 
-Route::middleware(['auth:sanctum', 'permission:manage-roles'])->group(function () {
+Route::middleware(['auth:sanctum', 'active','permission:manage-settings'])->group(function () {
     Route::get('admin/services', [ServiceController::class, 'adminIndex']);
     Route::post('services', [ServiceController::class, 'store']);
     Route::get('services/{service}', [ServiceController::class, 'show']);
@@ -118,7 +118,7 @@ Route::get('services', [ServiceController::class, 'index']);
 
 // Gallery
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'active','permission:manage-settings'])->group(function () {
     Route::get('admin/gallery', [GalleryController::class, 'adminIndex']);
     Route::post('gallery', [GalleryController::class, 'store']);
     Route::delete('gallery/bulk-delete', [GalleryController::class, 'bulkDestroy']);
@@ -135,17 +135,17 @@ Route::get('/settings', [SettingsController::class, 'index']);
 Route::get('/seo/{page}', [SeoController::class, 'show']);
 Route::get('/contents/{page}', [ContentController::class, 'show']);
 
-Route::middleware(['auth:sanctum', 'permission:manage-roles'])->group(function () {
+Route::middleware(['auth:sanctum', 'active','permission:manage-settings'])->group(function () {
     Route::get('/admin/settings', [AdminSettingsController::class, 'index']);
     Route::post('/admin/settings', [AdminSettingsController::class, 'update']);
 });
 
-Route::middleware(['auth:sanctum', 'permission:manage-settings'])->prefix('admin')->group(function () {
+Route::middleware(['auth:sanctum', 'active','permission:manage-settings'])->prefix('admin')->group(function () {
     Route::apiResource('seo-pages', SeoPageController::class);
 });
 
 
-Route::middleware(['auth:sanctum', 'permission:manage-settings'])->prefix('admin')->group(function () {
+Route::middleware(['auth:sanctum', 'active','permission:manage-settings'])->prefix('admin')->group(function () {
     Route::get('/contents/pages', [AdminContentController::class, 'pages']);
     Route::post('/contents', [AdminContentController::class, 'store']);
     Route::get('/contents', [AdminContentController::class, 'index']);
@@ -154,7 +154,7 @@ Route::middleware(['auth:sanctum', 'permission:manage-settings'])->prefix('admin
     Route::delete('/contents/{content}', [AdminContentController::class, 'destroy'])->whereNumber('content');
 });
 
-Route::middleware(['auth:sanctum', 'permission:manage-settings'])->prefix('admin')->group(function () {
+Route::middleware(['auth:sanctum', 'active','permission:manage-settings'])->prefix('admin')->group(function () {
     Route::apiResource('site-scripts', SiteScriptController::class);
 });
 
@@ -163,7 +163,7 @@ Route::get('/site-scripts/public',[PublicSiteScriptController::class, 'index']);
 // Analytics Events
 Route::post('/analytics/events', [AnalyticsController::class,'store',])->middleware('throttle:30,1');
 
-Route::middleware(['auth:sanctum', 'permission:manage-settings'])
+Route::middleware(['auth:sanctum', 'active','permission:manage-settings'])
     ->prefix('admin')
     ->group(function () {
         Route::get(
