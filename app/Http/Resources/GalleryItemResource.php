@@ -14,7 +14,7 @@ class GalleryItemResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-         return [
+        return [
             'id' => $this->id,
             'image' => $this->image,
             'created_at' => $this->created_at,

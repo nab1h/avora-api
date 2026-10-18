@@ -1,0 +1,1393 @@
+{
+  "info": {
+    "name": "Avora Product Catalog API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Run against a development/test database after applying the five additive catalog migrations. Configure base_url (origin without /api), admin credentials or token. Run folders in order. Select local files for the two upload requests; these cannot run unattended until files are selected. Existing gallery uploads survive cleanup. No credentials are included."
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "run_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "gallery_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "gallery_item_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "category_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "product_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "image_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (!pm.collectionVariables.get(\"run_id\")) pm.collectionVariables.set(\"run_id\", String(Date.now()));"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Login with existing administrator",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/login",
+            "description": "Existing login endpoint. Requires an active user with manage-settings under the sanctum permission guard. You may instead set token manually.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{admin_email}}\",\n  \"password\": \"{{admin_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "if (pm.response.code === 200) pm.collectionVariables.set(\"token\", body.token);",
+                  "if (pm.response.code === 200) pm.environment.set(\"token\", body.token);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Category gallery",
+      "item": [
+        {
+          "name": "Create gallery",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/admin/galleries",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Lighting gallery {{run_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(true));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Data field\", () => pm.expect(body).to.have.property(\"data\"));",
+                  "if (pm.response.code === 201) pm.collectionVariables.set(\"gallery_id\", body.data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Upload existing gallery items (select files)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/gallery",
+            "description": "Existing upload behavior is preserved. Choose local files before sending.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "images[]",
+                  "type": "file",
+                  "src": [],
+                  "description": "Choose a local JPG/PNG/WebP file, max 2 MiB."
+                },
+                {
+                  "key": "images[]",
+                  "type": "file",
+                  "src": [],
+                  "description": "Choose a local JPG/PNG/WebP file, max 2 MiB."
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "if (pm.response.code === 200) pm.collectionVariables.set(\"gallery_item_id\", body.data[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Assign existing gallery item without copying",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/admin/galleries/{{gallery_id}}",
+            "description": "item_ids explicitly REPLACES membership. Other items are detached, never deleted. An item assigned elsewhere moves here.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"item_ids\": [\n    \"{{gallery_item_id}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(true));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Data field\", () => pm.expect(body).to.have.property(\"data\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List galleries (admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/admin/galleries?per_page=15",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(true));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Data field\", () => pm.expect(body).to.have.property(\"data\"));",
+                  "pm.test(\"Collection\", () => pm.expect(body.data).to.be.an(\"array\"));",
+                  "pm.test(\"Pagination\", () => { [\"current_page\", \"per_page\", \"total\", \"last_page\"].forEach(k => pm.expect(body.meta[k]).to.be.a(\"number\")); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Show gallery",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/admin/galleries/{{gallery_id}}",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(true));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Data field\", () => pm.expect(body).to.have.property(\"data\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Categories",
+      "item": [
+        {
+          "name": "Create category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/categories",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name_ar\": \"إضاءة داخلية\",\n  \"name_en\": \"Indoor Lighting\",\n  \"slug\": \"indoor-lighting-{{run_id}}\",\n  \"description_ar\": \"وصف عربي أصلي\",\n  \"description_en\": \"Original English description\",\n  \"gallery_id\": \"{{gallery_id}}\",\n  \"status\": \"active\",\n  \"sort_order\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(true));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Data field\", () => pm.expect(body).to.have.property(\"data\"));",
+                  "if (pm.response.code === 201) pm.collectionVariables.set(\"category_id\", body.data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List active categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/categories",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(true));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Data field\", () => pm.expect(body).to.have.property(\"data\"));",
+                  "pm.test(\"Collection\", () => pm.expect(body.data).to.be.an(\"array\"));",
+                  "pm.test(\"Pagination\", () => { [\"current_page\", \"per_page\", \"total\", \"last_page\"].forEach(k => pm.expect(body.meta[k]).to.be.a(\"number\")); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Show category with gallery items",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/categories/{{category_id}}",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(true));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Data field\", () => pm.expect(body).to.have.property(\"data\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update category",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/categories/{{category_id}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description_en\": \"Updated original description\",\n  \"sort_order\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(true));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Data field\", () => pm.expect(body).to.have.property(\"data\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List all categories (admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/admin/categories?per_page=15",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(true));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Data field\", () => pm.expect(body).to.have.property(\"data\"));",
+                  "pm.test(\"Collection\", () => pm.expect(body.data).to.be.an(\"array\"));",
+                  "pm.test(\"Pagination\", () => { [\"current_page\", \"per_page\", \"total\", \"last_page\"].forEach(k => pm.expect(body.meta[k]).to.be.a(\"number\")); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Show category (admin, includes inactive)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/admin/categories/{{category_id}}",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(true));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Data field\", () => pm.expect(body).to.have.property(\"data\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Products",
+      "item": [
+        {
+          "name": "Create product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/products",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category_id\": \"{{category_id}}\",\n  \"name_ar\": \"مصباح معلق\",\n  \"name_en\": \"Pendant Light\",\n  \"slug\": \"pendant-light-{{run_id}}\",\n  \"sku\": \"LIGHT-{{run_id}}\",\n  \"price\": \"1250.00\",\n  \"sale_price\": \"1000.00\",\n  \"status\": \"active\",\n  \"is_featured\": true,\n  \"sort_order\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(true));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Data field\", () => pm.expect(body).to.have.property(\"data\"));",
+                  "if (pm.response.code === 201) pm.collectionVariables.set(\"product_id\", body.data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List active products",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/products",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(true));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Data field\", () => pm.expect(body).to.have.property(\"data\"));",
+                  "pm.test(\"Collection\", () => pm.expect(body.data).to.be.an(\"array\"));",
+                  "pm.test(\"Pagination\", () => { [\"current_page\", \"per_page\", \"total\", \"last_page\"].forEach(k => pm.expect(body.meta[k]).to.be.a(\"number\")); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Show product with category and ordered images",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/products/{{product_id}}",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(true));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Data field\", () => pm.expect(body).to.have.property(\"data\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update product",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/products/{{product_id}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": \"1300.00\",\n  \"is_featured\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(true));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Data field\", () => pm.expect(body).to.have.property(\"data\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Filter by category",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/products?category_id={{category_id}}",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(true));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Data field\", () => pm.expect(body).to.have.property(\"data\"));",
+                  "pm.test(\"Collection\", () => pm.expect(body.data).to.be.an(\"array\"));",
+                  "pm.test(\"Pagination\", () => { [\"current_page\", \"per_page\", \"total\", \"last_page\"].forEach(k => pm.expect(body.meta[k]).to.be.a(\"number\")); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Category products collection",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/categories/{{category_id}}/products?per_page=15",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(true));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Data field\", () => pm.expect(body).to.have.property(\"data\"));",
+                  "pm.test(\"Collection\", () => pm.expect(body.data).to.be.an(\"array\"));",
+                  "pm.test(\"Pagination\", () => { [\"current_page\", \"per_page\", \"total\", \"last_page\"].forEach(k => pm.expect(body.meta[k]).to.be.a(\"number\")); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search product names or SKU",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/products?search=LIGHT-{{run_id}}",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(true));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Data field\", () => pm.expect(body).to.have.property(\"data\"));",
+                  "pm.test(\"Collection\", () => pm.expect(body.data).to.be.an(\"array\"));",
+                  "pm.test(\"Pagination\", () => { [\"current_page\", \"per_page\", \"total\", \"last_page\"].forEach(k => pm.expect(body.meta[k]).to.be.a(\"number\")); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Featured products",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/products?featured=1",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(true));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Data field\", () => pm.expect(body).to.have.property(\"data\"));",
+                  "pm.test(\"Collection\", () => pm.expect(body.data).to.be.an(\"array\"));",
+                  "pm.test(\"Pagination\", () => { [\"current_page\", \"per_page\", \"total\", \"last_page\"].forEach(k => pm.expect(body.meta[k]).to.be.a(\"number\")); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pagination and price sorting",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/products?page=1&per_page=2&sort=price&direction=asc",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(true));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Data field\", () => pm.expect(body).to.have.property(\"data\"));",
+                  "pm.test(\"Collection\", () => pm.expect(body.data).to.be.an(\"array\"));",
+                  "pm.test(\"Pagination\", () => { [\"current_page\", \"per_page\", \"total\", \"last_page\"].forEach(k => pm.expect(body.meta[k]).to.be.a(\"number\")); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List all products (admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/admin/products?per_page=15",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(true));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Data field\", () => pm.expect(body).to.have.property(\"data\"));",
+                  "pm.test(\"Collection\", () => pm.expect(body.data).to.be.an(\"array\"));",
+                  "pm.test(\"Pagination\", () => { [\"current_page\", \"per_page\", \"total\", \"last_page\"].forEach(k => pm.expect(body.meta[k]).to.be.a(\"number\")); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Show product (admin, includes inactive)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/admin/products/{{product_id}}",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(true));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Data field\", () => pm.expect(body).to.have.property(\"data\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5. Product images",
+      "item": [
+        {
+          "name": "Upload multiple product images (select files)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/products/{{product_id}}/images",
+            "description": "Select two local image files. Do not add a Content-Type header; Postman supplies the multipart boundary.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "images[]",
+                  "type": "file",
+                  "src": [],
+                  "description": "Choose a local JPG/PNG/WebP file, max 2 MiB."
+                },
+                {
+                  "key": "images[]",
+                  "type": "file",
+                  "src": [],
+                  "description": "Choose a local JPG/PNG/WebP file, max 2 MiB."
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(true));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Data field\", () => pm.expect(body).to.have.property(\"data\"));",
+                  "if (pm.response.code === 201) pm.collectionVariables.set(\"image_id\", body.data[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List ordered product images",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/products/{{product_id}}/images?per_page=15",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(true));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Data field\", () => pm.expect(body).to.have.property(\"data\"));",
+                  "pm.test(\"Collection\", () => pm.expect(body.data).to.be.an(\"array\"));",
+                  "pm.test(\"Pagination\", () => { [\"current_page\", \"per_page\", \"total\", \"last_page\"].forEach(k => pm.expect(body.meta[k]).to.be.a(\"number\")); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update image alt text and ordering",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/products/{{product_id}}/images/{{image_id}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"alt_text\": \"مصباح معلق / Pendant Light\",\n  \"sort_order\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(true));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Data field\", () => pm.expect(body).to.have.property(\"data\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete product image",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/products/{{product_id}}/images/{{image_id}}",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(true));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Data field\", () => pm.expect(body).to.have.property(\"data\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "6. Error contracts",
+      "item": [
+        {
+          "name": "Invalid category input",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/categories",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 422\", () => pm.response.to.have.status(422));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(false));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Errors field\", () => pm.expect(body).to.have.property(\"errors\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid sale price",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/products/{{product_id}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sale_price\": \"9999.00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 422\", () => pm.response.to.have.status(422));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(false));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Errors field\", () => pm.expect(body).to.have.property(\"errors\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid page size",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/products?per_page=101",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 422\", () => pm.response.to.have.status(422));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(false));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Errors field\", () => pm.expect(body).to.have.property(\"errors\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Missing resource",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/products/9223372036854775807",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(false));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Errors field\", () => pm.expect(body).to.have.property(\"errors\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unauthenticated admin write",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/products",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(false));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Errors field\", () => pm.expect(body).to.have.property(\"errors\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Category with products cannot be deleted",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/categories/{{category_id}}",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 422\", () => pm.response.to.have.status(422));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(false));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Errors field\", () => pm.expect(body).to.have.property(\"errors\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "7. Cleanup (only the records created above)",
+      "item": [
+        {
+          "name": "Delete product and its remaining owned images",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/products/{{product_id}}",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(true));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Data field\", () => pm.expect(body).to.have.property(\"data\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete empty category",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/categories/{{category_id}}",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(true));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Data field\", () => pm.expect(body).to.have.property(\"data\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete gallery while preserving gallery items",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/admin/galleries/{{gallery_id}}",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Envelope\", () => pm.expect(body.success).to.eql(true));",
+                  "pm.test(\"Message\", () => pm.expect(body.message).to.be.a(\"string\"));",
+                  "pm.test(\"Data field\", () => pm.expect(body).to.have.property(\"data\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

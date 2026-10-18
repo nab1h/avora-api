@@ -1,14 +1,19 @@
 <?php
 
-use App\Http\Controllers\Admin\SeoPageController;
-use App\Http\Controllers\Admin\SiteScriptController;
-use App\Http\Controllers\Admin\SettingsController as AdminSettingsController;
-use App\Http\Controllers\Admin\ContentController as AdminContentController;
 use App\Http\Controllers\Admin\AnalyticsDashboardController;
+use App\Http\Controllers\Admin\ContentController as AdminContentController;
+use App\Http\Controllers\Admin\SeoPageController;
+use App\Http\Controllers\Admin\SettingsController as AdminSettingsController;
+use App\Http\Controllers\Admin\SiteScriptController;
+use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CatalogGalleryController;
+use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\GalleryController;
 use App\Http\Controllers\Api\PermissionController;
+use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\ProductImageController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\RolePermissionController;
@@ -18,16 +23,37 @@ use App\Http\Controllers\Api\SocialPlatformController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\UserPermissionController;
 use App\Http\Controllers\Api\UserRoleController;
-use App\Http\Controllers\Api\AnalyticsController;
-use App\Http\Controllers\SettingsController;
-use App\Http\Controllers\SeoController;
-use App\Http\Controllers\PublicSiteScriptController;
 use App\Http\Controllers\ContentController;
+use App\Http\Controllers\PublicSiteScriptController;
+use App\Http\Controllers\SeoController;
+use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
+
+// Catalog reads are public and expose active records only. Existing routes
+// retain their own response contracts and authorization middleware.
+Route::get('categories', [CategoryController::class, 'index']);
+Route::get('categories/{category}', [CategoryController::class, 'show'])->whereNumber('category');
+Route::get('categories/{category}/products', [ProductController::class, 'categoryProducts'])->whereNumber('category');
+Route::get('products', [ProductController::class, 'index']);
+Route::get('products/{product}', [ProductController::class, 'show'])->whereNumber('product');
+Route::get('products/{product}/images', [ProductImageController::class, 'index'])->whereNumber('product');
+
+Route::middleware(['auth:sanctum', 'active', 'permission:manage-settings'])->group(function () {
+    Route::get('admin/categories', [CategoryController::class, 'adminIndex']);
+    Route::get('admin/categories/{category}', [CategoryController::class, 'adminShow'])->whereNumber('category');
+    Route::get('admin/products', [ProductController::class, 'adminIndex']);
+    Route::get('admin/products/{product}', [ProductController::class, 'adminShow'])->whereNumber('product');
+    Route::apiResource('categories', CategoryController::class)->only(['store', 'update', 'destroy']);
+    Route::apiResource('products', ProductController::class)->only(['store', 'update', 'destroy']);
+    Route::post('products/{product}/images', [ProductImageController::class, 'store'])->whereNumber('product');
+    Route::patch('products/{product}/images/{image}', [ProductImageController::class, 'update'])->scopeBindings()->whereNumber(['product', 'image']);
+    Route::delete('products/{product}/images/{image}', [ProductImageController::class, 'destroy'])->scopeBindings()->whereNumber(['product', 'image']);
+    Route::apiResource('admin/galleries', CatalogGalleryController::class);
+});
 
 // Dashboard
 
-Route::middleware(['auth:sanctum','active', 'permission:manage-settings'])
+Route::middleware(['auth:sanctum', 'active', 'permission:manage-settings'])
     ->get('/dashboard/stats', [DashboardController::class, 'stats']);
 
 // Authentication
@@ -76,13 +102,13 @@ Route::middleware(['auth:sanctum', 'permission:manage-settings'])->group(functio
 
 // Permission management
 
-Route::middleware(['auth:sanctum','permission:manage-settings'])->group(function () {
+Route::middleware(['auth:sanctum', 'permission:manage-settings'])->group(function () {
     Route::apiResource('permissions', PermissionController::class);
 });
 
 // Users
 
-Route::middleware(['auth:sanctum', 'active','permission:manage-settings'])->group(function () {
+Route::middleware(['auth:sanctum', 'active', 'permission:manage-settings'])->group(function () {
     Route::get('users', [UserController::class, 'index'])->middleware('permission:manage-settings');
     Route::post('users', [UserController::class, 'store'])->middleware('permission:manage-settings');
     Route::get('users/{user}', [UserController::class, 'show'])->middleware('permission:manage-settings');
@@ -96,7 +122,7 @@ Route::middleware(['auth:sanctum', 'active','permission:manage-settings'])->grou
 Route::get('social-links', [SocialLinkController::class, 'index']);
 Route::get('social-platforms', [SocialPlatformController::class, 'index']);
 
-Route::middleware(['auth:sanctum','active', 'permission:manage-settings'])->group(function () {
+Route::middleware(['auth:sanctum', 'active', 'permission:manage-settings'])->group(function () {
     Route::get('admin/social-links', [SocialLinkController::class, 'adminIndex']);
     Route::post('social-links', [SocialLinkController::class, 'store']);
     Route::get('social-links/{socialLink}', [SocialLinkController::class, 'show']);
@@ -106,7 +132,7 @@ Route::middleware(['auth:sanctum','active', 'permission:manage-settings'])->grou
 
 // Services
 
-Route::middleware(['auth:sanctum', 'active','permission:manage-settings'])->group(function () {
+Route::middleware(['auth:sanctum', 'active', 'permission:manage-settings'])->group(function () {
     Route::get('admin/services', [ServiceController::class, 'adminIndex']);
     Route::post('services', [ServiceController::class, 'store']);
     Route::get('services/{service}', [ServiceController::class, 'show']);
@@ -118,7 +144,7 @@ Route::get('services', [ServiceController::class, 'index']);
 
 // Gallery
 
-Route::middleware(['auth:sanctum', 'active','permission:manage-settings'])->group(function () {
+Route::middleware(['auth:sanctum', 'active', 'permission:manage-settings'])->group(function () {
     Route::get('admin/gallery', [GalleryController::class, 'adminIndex']);
     Route::post('gallery', [GalleryController::class, 'store']);
     Route::delete('gallery/bulk-delete', [GalleryController::class, 'bulkDestroy']);
@@ -135,17 +161,16 @@ Route::get('/settings', [SettingsController::class, 'index']);
 Route::get('/seo/{page}', [SeoController::class, 'show']);
 Route::get('/contents/{page}', [ContentController::class, 'show']);
 
-Route::middleware(['auth:sanctum', 'active','permission:manage-settings'])->group(function () {
+Route::middleware(['auth:sanctum', 'active', 'permission:manage-settings'])->group(function () {
     Route::get('/admin/settings', [AdminSettingsController::class, 'index']);
     Route::post('/admin/settings', [AdminSettingsController::class, 'update']);
 });
 
-Route::middleware(['auth:sanctum', 'active','permission:manage-settings'])->prefix('admin')->group(function () {
+Route::middleware(['auth:sanctum', 'active', 'permission:manage-settings'])->prefix('admin')->group(function () {
     Route::apiResource('seo-pages', SeoPageController::class);
 });
 
-
-Route::middleware(['auth:sanctum', 'active','permission:manage-settings'])->prefix('admin')->group(function () {
+Route::middleware(['auth:sanctum', 'active', 'permission:manage-settings'])->prefix('admin')->group(function () {
     Route::get('/contents/pages', [AdminContentController::class, 'pages']);
     Route::post('/contents', [AdminContentController::class, 'store']);
     Route::get('/contents', [AdminContentController::class, 'index']);
@@ -154,16 +179,16 @@ Route::middleware(['auth:sanctum', 'active','permission:manage-settings'])->pref
     Route::delete('/contents/{content}', [AdminContentController::class, 'destroy'])->whereNumber('content');
 });
 
-Route::middleware(['auth:sanctum', 'active','permission:manage-settings'])->prefix('admin')->group(function () {
+Route::middleware(['auth:sanctum', 'active', 'permission:manage-settings'])->prefix('admin')->group(function () {
     Route::apiResource('site-scripts', SiteScriptController::class);
 });
 
-Route::get('/site-scripts/public',[PublicSiteScriptController::class, 'index']);
+Route::get('/site-scripts/public', [PublicSiteScriptController::class, 'index']);
 
 // Analytics Events
-Route::post('/analytics/events', [AnalyticsController::class,'store',])->middleware('throttle:30,1');
+Route::post('/analytics/events', [AnalyticsController::class, 'store'])->middleware('throttle:30,1');
 
-Route::middleware(['auth:sanctum', 'active','permission:manage-settings'])
+Route::middleware(['auth:sanctum', 'active', 'permission:manage-settings'])
     ->prefix('admin')
     ->group(function () {
         Route::get(

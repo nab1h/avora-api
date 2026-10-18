@@ -3,13 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreGalleryItemRequest;
-use App\Http\Resources\GalleryItemResource;
+use App\Http\Resources\GalleryItemCollection;
 use App\Models\GalleryItem;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-
 
 class GalleryController extends Controller
 {
@@ -17,14 +15,14 @@ class GalleryController extends Controller
     {
         $galleryItems = GalleryItem::latest()->get();
 
-        return response()->json($galleryItems);
+        return response()->json((new GalleryItemCollection($galleryItems))->resolve(request()));
     }
 
     public function adminIndex()
     {
         $galleryItems = GalleryItem::latest()->get();
 
-        return response()->json($galleryItems);
+        return response()->json((new GalleryItemCollection($galleryItems))->resolve(request()));
     }
 
     public function store(Request $request)
@@ -46,7 +44,7 @@ class GalleryController extends Controller
             ]);
         }
 
-        return GalleryItemResource::collection($galleryItems);
+        return new GalleryItemCollection($galleryItems);
     }
 
     public function destroy(GalleryItem $galleryItem): JsonResponse
