@@ -10,23 +10,34 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Category extends Model
 {
     protected $fillable = [
-        'name_ar', 'name_en', 'slug', 'description_ar', 'description_en',
-        'gallery_id', 'status', 'sort_order',
+        'name_ar',
+        'name_en',
+        'slug',
+        'description_ar',
+        'description_en',
+        'gallery_item_id',
+        'status',
+        'sort_order',
     ];
 
     protected function casts(): array
     {
-        return ['sort_order' => 'integer', 'status' => 'string'];
+        return [
+            'sort_order' => 'integer',
+            'status' => 'string',
+        ];
     }
 
-    public function gallery(): BelongsTo
+    public function galleryItem(): BelongsTo
     {
-        return $this->belongsTo(Gallery::class);
+        return $this->belongsTo(GalleryItem::class);
     }
 
     public function products(): HasMany
     {
-        return $this->hasMany(Product::class)->orderBy('sort_order')->orderBy('id');
+        return $this->hasMany(Product::class)
+            ->orderBy('sort_order')
+            ->orderBy('id');
     }
 
     public function scopeVisible(Builder $query): Builder

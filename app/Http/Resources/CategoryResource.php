@@ -18,9 +18,22 @@ class CategoryResource extends JsonResource
             'description_en' => $this->description_en,
             'status' => $this->status,
             'sort_order' => $this->sort_order,
-            'gallery_id' => $this->gallery_id,
-            'gallery' => GalleryResource::make($this->whenLoaded('gallery')),
-            'products' => new ProductCollection($this->whenLoaded('products')),
+
+            'gallery_item_id' => $this->gallery_item_id,
+
+            'gallery_item' => $this->whenLoaded(
+                'galleryItem',
+                fn () => $this->galleryItem
+                    ? [
+                        'id' => $this->galleryItem->id,
+                        'image' => $this->galleryItem->image,
+                    ]
+                    : null
+            ),
+
+            'products' => new ProductCollection(
+                $this->whenLoaded('products')
+            ),
         ];
     }
 }

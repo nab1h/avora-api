@@ -11,7 +11,7 @@ class CatalogQuery
 {
     public function categories(array $filters, bool $admin = false): LengthAwarePaginator
     {
-        $query = Category::query()->with('gallery.items');
+        $query = Category::query()->with('galleryItem');
         if (! $admin) {
             $query->visible();
         }

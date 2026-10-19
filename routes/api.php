@@ -43,8 +43,8 @@ Route::middleware(['auth:sanctum', 'active', 'permission:manage-settings'])->gro
     Route::get('admin/categories/{category}', [CategoryController::class, 'adminShow'])->whereNumber('category');
     Route::get('admin/products', [ProductController::class, 'adminIndex']);
     Route::get('admin/products/{product}', [ProductController::class, 'adminShow'])->whereNumber('product');
-    Route::apiResource('categories', CategoryController::class)->only(['store', 'update', 'destroy']);
-    Route::apiResource('products', ProductController::class)->only(['store', 'update', 'destroy']);
+    Route::apiResource('admin/categories', CategoryController::class)->only(['store', 'update', 'destroy']);
+    Route::apiResource('admin/products', ProductController::class)->only(['store', 'update', 'destroy']);
     Route::post('products/{product}/images', [ProductImageController::class, 'store'])->whereNumber('product');
     Route::patch('products/{product}/images/{image}', [ProductImageController::class, 'update'])->scopeBindings()->whereNumber(['product', 'image']);
     Route::delete('products/{product}/images/{image}', [ProductImageController::class, 'destroy'])->scopeBindings()->whereNumber(['product', 'image']);

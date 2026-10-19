@@ -35,21 +35,33 @@ class CategoryController extends Controller
 
     public function adminShow(Category $category): JsonResponse
     {
-        return CatalogResponse::resource(new CategoryResource($category->loadMissing('gallery.items')), 'catalog.category_retrieved');
+        return CatalogResponse::resource(
+            new CategoryResource($category->loadMissing('galleryItem')),
+            'catalog.category_retrieved'
+        );
     }
 
     public function store(StoreCategoryRequest $request): JsonResponse
     {
-        $category = Category::create($request->validated())->refresh()->load('gallery.items');
+        $category = Category::create($request->validated())
+            ->refresh()
+            ->load('galleryItem');
 
-        return CatalogResponse::resource(new CategoryResource($category), 'catalog.category_created', 201);
+        return CatalogResponse::resource(
+            new CategoryResource($category),
+            'catalog.category_created',
+            201
+        );
     }
 
     public function update(UpdateCategoryRequest $request, Category $category): JsonResponse
     {
         $category->update($request->validated());
 
-        return CatalogResponse::resource(new CategoryResource($category->refresh()->load('gallery.items')), 'catalog.category_updated');
+        return CatalogResponse::resource(
+            new CategoryResource($category->refresh()->load('galleryItem')),
+            'catalog.category_updated'
+        );
     }
 
     public function destroy(Category $category, CatalogService $service): JsonResponse
