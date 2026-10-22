@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CatalogGalleryController;
 use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\ColorController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\GalleryController;
 use App\Http\Controllers\Api\PermissionController;
@@ -20,6 +21,7 @@ use App\Http\Controllers\Api\RolePermissionController;
 use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\SocialLinkController;
 use App\Http\Controllers\Api\SocialPlatformController;
+use App\Http\Controllers\Api\SpecificationController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\UserPermissionController;
 use App\Http\Controllers\Api\UserRoleController;
@@ -49,6 +51,26 @@ Route::middleware(['auth:sanctum', 'active', 'permission:manage-settings'])->gro
     Route::patch('products/{product}/images/{image}', [ProductImageController::class, 'update'])->scopeBindings()->whereNumber(['product', 'image']);
     Route::delete('products/{product}/images/{image}', [ProductImageController::class, 'destroy'])->scopeBindings()->whereNumber(['product', 'image']);
     Route::apiResource('admin/galleries', CatalogGalleryController::class);
+    Route::apiResource('admin/specifications', SpecificationController::class);
+
+    Route::get('/admin/colors', [ColorController::class, 'index'])
+            ->name('colors.index');
+
+    Route::post('/admin/colors', [ColorController::class, 'store'])
+        ->name('colors.store');
+
+    Route::get('/admin/colors/{color}', [ColorController::class, 'show'])
+        ->name('colors.show');
+
+    Route::put('/admin/colors/{color}', [ColorController::class, 'update'])
+        ->name('colors.update');
+
+    Route::patch('/admin/colors/{color}', [ColorController::class, 'update'])
+        ->name('colors.patch');
+
+    Route::delete('/admin/colors/{color}', [ColorController::class, 'destroy'])
+        ->name('colors.destroy');
+
 });
 
 // Dashboard
@@ -196,3 +218,5 @@ Route::middleware(['auth:sanctum', 'active', 'permission:manage-settings'])
             [AnalyticsDashboardController::class, 'index']
         );
     });
+Route::get('/colors', [ColorController::class, 'index'])
+            ->name('colors.index');

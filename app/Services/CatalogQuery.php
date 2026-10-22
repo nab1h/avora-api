@@ -22,7 +22,7 @@ class CatalogQuery
 
     public function products(array $filters, bool $admin = false, ?Category $category = null): LengthAwarePaginator
     {
-        $query = Product::query()->with(['category', 'images']);
+        $query = Product::query()->with(['category', 'images', 'specifications.specification', 'colors']);
         if (! $admin) {
             $query->visible();
         }

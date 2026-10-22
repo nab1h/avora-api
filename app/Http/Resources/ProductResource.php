@@ -23,8 +23,21 @@ class ProductResource extends JsonResource
             'status' => $this->status,
             'is_featured' => $this->is_featured,
             'sort_order' => $this->sort_order,
-            'category' => CategoryResource::make($this->whenLoaded('category')),
-            'images' => ImageResource::collection($this->whenLoaded('images')),
+
+            'category' => CategoryResource::make(
+                $this->whenLoaded('category')
+            ),
+
+            'images' => ImageResource::collection(
+                $this->whenLoaded('images')
+            ),
+
+            'specifications' => ProductSpecificationResource::collection(
+                $this->whenLoaded('specifications')
+            ),
+            'colors' => ColorResource::collection(
+                $this->whenLoaded('colors')
+            ),
         ];
     }
 }

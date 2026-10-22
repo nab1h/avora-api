@@ -43,7 +43,16 @@ class ProductController extends Controller
 
     public function adminShow(Product $product): JsonResponse
     {
-        return CatalogResponse::resource(new ProductResource($product->loadMissing(['category', 'images'])), 'catalog.product_retrieved');
+        return CatalogResponse::resource(
+            new ProductResource(
+                $product->loadMissing([
+                    'category',
+                    'images',
+                    'specifications.specification',
+                ])
+            ),
+            'catalog.product_retrieved'
+        );
     }
 
     public function store(StoreProductRequest $request, CatalogService $service): JsonResponse
